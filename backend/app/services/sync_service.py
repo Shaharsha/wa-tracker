@@ -74,6 +74,12 @@ async def _do_sync():
         )
         known_latest = {row["chat_id"]: row["latest_ts"] for row in await cursor.fetchall()}
 
+        # Find chats with missing media (need re-fetch with downloadMedia=true)
+        cursor = await db.execute(
+            "SELECT DISTINCT chat_id FROM messages WHERE message_type IN ('image','video','audio','ptt','sticker','document') AND media_url IS NULL"
+        )
+        needs_media = {row["chat_id"] for row in await cursor.fetchall()}
+
         cursor = await db.execute(
             "SELECT jid FROM contacts WHERE profile_picture_url IS NOT NULL"
         )
@@ -118,7 +124,7 @@ async def _do_sync():
             chat_ts = chat.get("conversationTimestamp") or chat.get("timestamp") or 0
             our_latest = known_latest.get(jid, 0)
 
-            if chat_ts > our_latest or jid not in known_latest:
+            if chat_ts > our_latest or jid not in known_latest or jid in needs_media:
                 try:
                     messages = await waha_client.get_messages(jid, limit=20)
                     fetched_count += 1
