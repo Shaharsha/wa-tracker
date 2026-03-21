@@ -82,7 +82,7 @@ export function ContactRow({
         </div>
 
         {/* Badges + Actions */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0 ml-auto">
           {contact.unanswered_count > 0 && (
             <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${getUrgencyClasses(contact.waiting_seconds)}`}>
               {contact.unanswered_count}

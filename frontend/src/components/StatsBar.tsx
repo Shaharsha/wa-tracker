@@ -67,16 +67,16 @@ export function StatsBar({ onShowQR, onSynced }: Props) {
           </h1>
         </div>
 
-        {/* Stats — hide secondary on mobile */}
-        <div className="flex items-center gap-2 text-xs flex-1 justify-center sm:justify-start">
-          <div className="flex items-center gap-1.5 bg-stone-50 rounded-lg px-2.5 py-1.5 border border-stone-100">
+        {/* Stats */}
+        <div className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs flex-1 justify-center sm:justify-start overflow-x-auto">
+          <div className="flex items-center gap-1 sm:gap-1.5 bg-stone-50 rounded-lg px-2 sm:px-2.5 py-1 sm:py-1.5 border border-stone-100 shrink-0">
             <span className="font-semibold text-coral-500 tabular-nums">{stats.total_unanswered}</span>
             <span className="text-stone-400">waiting</span>
           </div>
 
           {stats.longest_waiting_hours > 0 && (
-            <div className="hidden sm:flex items-center gap-1.5 bg-stone-50 rounded-lg px-2.5 py-1.5 border border-stone-100">
-              <span className="text-stone-400">longest</span>
+            <div className="flex items-center gap-1 sm:gap-1.5 bg-stone-50 rounded-lg px-2 sm:px-2.5 py-1 sm:py-1.5 border border-stone-100 shrink-0">
+              <span className="text-stone-400 hidden sm:inline">longest</span>
               <span className="font-semibold text-stone-700 tabular-nums">
                 {stats.longest_waiting_hours < 24
                   ? `${stats.longest_waiting_hours}h`
@@ -85,8 +85,8 @@ export function StatsBar({ onShowQR, onSynced }: Props) {
             </div>
           )}
 
-          <div className="hidden sm:flex items-center gap-1.5 bg-stone-50 rounded-lg px-2.5 py-1.5 border border-stone-100">
-            <span className="text-stone-400">synced</span>
+          <div className="flex items-center gap-1 sm:gap-1.5 bg-stone-50 rounded-lg px-2 sm:px-2.5 py-1 sm:py-1.5 border border-stone-100 shrink-0">
+            <span className="text-stone-400 hidden sm:inline">synced</span>
             <span className="font-medium text-stone-600">{syncAgo}</span>
           </div>
         </div>
