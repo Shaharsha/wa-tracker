@@ -62,7 +62,7 @@ function LoginScreen() {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full border border-stone-200 rounded-xl px-4 py-3 text-sm bg-stone-50/50 text-stone-800 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-stone-800/10 focus:border-stone-300 transition-all"
+                className="w-full border border-stone-200 rounded-xl px-4 py-3 text-base sm:text-sm bg-stone-50/50 text-stone-800 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-stone-800/10 focus:border-stone-300 transition-all"
                 placeholder="Enter username"
                 autoFocus
                 autoComplete="username"
@@ -74,7 +74,7 @@ function LoginScreen() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full border border-stone-200 rounded-xl px-4 py-3 text-sm bg-stone-50/50 text-stone-800 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-stone-800/10 focus:border-stone-300 transition-all"
+                className="w-full border border-stone-200 rounded-xl px-4 py-3 text-base sm:text-sm bg-stone-50/50 text-stone-800 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-stone-800/10 focus:border-stone-300 transition-all"
                 placeholder="Enter password"
                 autoComplete="current-password"
               />

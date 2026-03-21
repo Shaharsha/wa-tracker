@@ -90,7 +90,7 @@ export function ContactList({ contacts, dismissed, blocked, onRefresh }: Props) 
               placeholder="Search..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="text-xs border border-stone-200 rounded-lg pl-7 pr-2.5 py-1.5 w-28 sm:w-44 bg-white text-stone-700 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-stone-800/10 focus:border-stone-300 transition-all"
+              className="text-base sm:text-xs border border-stone-200 rounded-lg pl-7 pr-2.5 py-1.5 w-28 sm:w-44 bg-white text-stone-700 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-stone-800/10 focus:border-stone-300 transition-all"
             />
           </div>
         </div>
