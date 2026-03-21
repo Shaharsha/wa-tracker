@@ -209,9 +209,9 @@ export function ContactModal({
           <MessageThread messages={messages} loading={loading} />
         </div>
 
-        {/* Emoji picker */}
+        {/* Emoji picker — desktop only */}
         {showEmojiPicker && (
-          <div className="shrink-0 border-t border-stone-100 bg-white flex justify-center py-2">
+          <div className="shrink-0 border-t border-stone-100 bg-white hidden sm:flex justify-center py-2">
             <Picker
               data={data}
               onEmojiSelect={insertEmoji}
@@ -229,7 +229,7 @@ export function ContactModal({
           <div className="flex items-end gap-1.5">
             <button
               onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-              className={`shrink-0 self-stretch px-2 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+              className={`shrink-0 self-stretch px-2 rounded-xl hidden sm:flex items-center justify-center transition-all cursor-pointer ${
                 showEmojiPicker ? "bg-stone-100 text-stone-600" : "text-stone-300 hover:text-stone-500 hover:bg-stone-50"
               }`}
             >
