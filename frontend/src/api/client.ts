@@ -53,6 +53,7 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password }),
     });
+    if (resp.status === 429) throw new Error("Too many attempts. Try again in 5 minutes.");
     if (!resp.ok) throw new Error("Invalid credentials");
     const data = await resp.json();
     return data.token;
