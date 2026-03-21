@@ -39,6 +39,8 @@ FastAPI + React + SQLite backend. WAHA (WhatsApp HTTP API) for WhatsApp integrat
 - WAHA needs `WHATSAPP_NOWEB_STORE_ENABLED=True` to access chats/messages API
 - The WAHA free tier has no `/api/health` endpoint — healthcheck uses `/api/sessions`
 - Media pipeline: WAHA → memory → R2. Never write media to server disk
+- WAHA NOWEB returns `type: null` for media — detect from `_data.message.imageMessage` etc.
+- Emoji reactions are in `msg.reactions[]` with `fromMe` flag — save as synthetic messages
 - iOS Safari auto-zooms inputs with font-size < 16px — use `text-base` on mobile
 - Hebrew text needs `dir="auto"` on text elements for correct RTL rendering
 - `CREATE TABLE IF NOT EXISTS` doesn't add new columns — use ALTER TABLE migrations
