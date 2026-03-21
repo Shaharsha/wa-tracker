@@ -113,6 +113,25 @@ class WAHAClient:
             logger.error("Failed to fetch contacts: %s", e)
             return {}
 
+    async def send_message(self, chat_id: str, text: str) -> dict[str, Any] | None:
+        """Send a text message to a chat."""
+        try:
+            resp = await self._client.post(
+                f"/api/sendText",
+                json={
+                    "chatId": chat_id,
+                    "text": text,
+                    "session": self._session,
+                },
+            )
+            resp.raise_for_status()
+            data = resp.json()
+            logger.info("Sent message to %s", chat_id)
+            return data
+        except Exception as e:
+            logger.error("Failed to send message to %s: %s", chat_id, e)
+            return None
+
     async def get_messages(
         self, chat_id: str, limit: int = 30
     ) -> list[dict[str, Any]]:

@@ -122,6 +122,10 @@ export function ContactList({ contacts, dismissed, blocked, onRefresh }: Props) 
           onBlock={() => action(() => api.block(selectedContact.jid))}
           onUndismiss={() => action(() => api.undismiss(selectedContact.jid))}
           onUnblock={() => action(() => api.unblock(selectedContact.jid))}
+          onMessageSent={() => {
+            fetchMessages(selectedContact.jid);
+            onRefresh();
+          }}
         />
       )}
     </main>

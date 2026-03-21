@@ -74,6 +74,12 @@ export const api = {
       `/contacts/${encodeURIComponent(jid)}/messages?limit=${limit}`
     ),
 
+  sendMessage: (jid: string, text: string) =>
+    apiFetch<{ status: string; id: string }>(
+      `/contacts/${encodeURIComponent(jid)}/send`,
+      { method: "POST", body: JSON.stringify({ text }) },
+    ),
+
   dismiss: (jid: string) =>
     apiFetch(`/contacts/${encodeURIComponent(jid)}/dismiss`, {
       method: "POST",
