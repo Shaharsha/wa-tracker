@@ -20,6 +20,7 @@ export interface Message {
   body: string;
   timestamp: number;
   message_type: string;
+  media_url: string | null;
 }
 
 export interface Stats {

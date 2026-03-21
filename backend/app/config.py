@@ -11,6 +11,12 @@ class Settings(BaseSettings):
     dashboard_username: str = "admin"
     dashboard_password: str = ""
 
+    # Cloudflare R2
+    r2_endpoint: str = ""
+    r2_access_key: str = ""
+    r2_secret_key: str = ""
+    r2_bucket: str = "whatsapp-media"
+
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
 

@@ -73,6 +73,22 @@ class WAHAClient:
             logger.debug("Failed to get profile pic for %s: %s", contact_id, e)
             return None
 
+    async def download_media(self, message_id: str) -> tuple[bytes, str] | None:
+        """Download media for a message. Returns (data, mimetype) or None."""
+        try:
+            resp = await self._client.get(
+                f"/api/{self._session}/messages/{message_id}/download",
+                timeout=60.0,
+            )
+            if resp.status_code == 200:
+                mimetype = resp.headers.get("content-type", "application/octet-stream")
+                logger.debug("Downloaded media for %s (%d bytes, %s)", message_id, len(resp.content), mimetype)
+                return resp.content, mimetype
+            return None
+        except Exception as e:
+            logger.debug("Failed to download media for %s: %s", message_id, e)
+            return None
+
     async def get_all_contacts(self) -> dict[str, str]:
         """Fetch all contacts and return a {phone@s.whatsapp.net: name} mapping."""
         try:

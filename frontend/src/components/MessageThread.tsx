@@ -41,19 +41,44 @@ export function MessageThread({ messages, loading }: Props) {
             style={{ animationDelay: `${i * 20}ms` }}
           >
             <div
-              className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed shadow-sm ${
+              className={`max-w-[80%] rounded-2xl text-[13px] leading-relaxed shadow-sm overflow-hidden ${
                 msg.from_me
                   ? "bg-stone-800 text-stone-100 rounded-br-md"
                   : "bg-white text-stone-700 border border-stone-200/80 rounded-bl-md"
-              }`}
+              } ${msg.media_url ? "" : "px-3.5 py-2.5"}`}
             >
-              <p className="break-words whitespace-pre-wrap">
-                {msg.body || (
-                  <span className={`italic ${msg.from_me ? "text-stone-400" : "text-stone-300"}`}>
-                    {formatMediaType(msg.message_type) || "Message"}
-                  </span>
-                )}
-              </p>
+              {msg.media_url && ["image", "sticker"].includes(msg.message_type) && (
+                <img
+                  src={`/api/media/${msg.media_url}`}
+                  alt=""
+                  className="max-w-full max-h-64 object-contain"
+                  loading="lazy"
+                />
+              )}
+              {msg.media_url && msg.message_type === "video" && (
+                <video
+                  src={`/api/media/${msg.media_url}`}
+                  controls
+                  className="max-w-full max-h-64"
+                  preload="metadata"
+                />
+              )}
+              {msg.media_url && ["audio", "ptt"].includes(msg.message_type) && (
+                <div className="px-3.5 py-2.5">
+                  <audio src={`/api/media/${msg.media_url}`} controls className="w-full h-8" preload="metadata" />
+                </div>
+              )}
+              <div className={msg.media_url ? "px-3.5 py-2" : ""}>
+                {msg.body ? (
+                  <p className="break-words whitespace-pre-wrap">{msg.body}</p>
+                ) : !msg.media_url ? (
+                  <p>
+                    <span className={`italic ${msg.from_me ? "text-stone-400" : "text-stone-300"}`}>
+                      {formatMediaType(msg.message_type) || "Message"}
+                    </span>
+                  </p>
+                ) : null}
+              </div>
               <p className={`text-[10px] mt-1 ${
                 msg.from_me ? "text-stone-400" : "text-stone-300"
               }`}>

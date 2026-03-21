@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 
 from app.database import get_db
 from app.waha_client import waha_client
+from app.services.media import upload_to_r2
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +73,7 @@ async def _do_sync():
             pic_map = {}
 
         fetched_count = 0
+        media_count = 0
         for chat in personal_chats:
             jid = chat["id"]
             name = contact_names.get(jid) or chat.get("name") or chat.get("pushName") or chat.get("formattedTitle")
@@ -101,25 +103,40 @@ async def _do_sync():
                     logger.warning("Failed to fetch messages for %s, skipping", jid)
                     continue
 
-                # Batch insert messages
-                msg_rows = []
+                # Insert messages + download media for new ones
+                _MEDIA_TYPES = {"image", "video", "audio", "ptt", "sticker", "document"}
                 for msg in messages:
                     msg_id = msg.get("id")
                     if not msg_id:
                         continue
-                    msg_rows.append((
-                        msg_id, jid,
-                        1 if msg.get("fromMe") else 0,
-                        msg.get("body", ""),
-                        msg.get("timestamp", 0),
-                        msg.get("type", "chat"),
-                    ))
-                if msg_rows:
-                    await db.executemany(
+                    msg_type = msg.get("type", "chat")
+                    has_media = msg.get("hasMedia") or msg_type in _MEDIA_TYPES
+
+                    # Check if message already exists
+                    cursor = await db.execute("SELECT media_url FROM messages WHERE id = ?", (msg_id,))
+                    existing = await cursor.fetchone()
+                    if existing:
+                        continue  # Already have this message
+
+                    # Download + upload media to R2 (in memory, no disk)
+                    media_url = None
+                    if has_media:
+                        media_result = await waha_client.download_media(msg_id)
+                        if media_result:
+                            data, mimetype = media_result
+                            ext = mimetype.split("/")[-1].split(";")[0]
+                            r2_key = f"{jid.split('@')[0]}/{msg_id}.{ext}"
+                            uploaded = upload_to_r2(r2_key, data, mimetype)
+                            if uploaded:
+                                media_url = uploaded
+                                media_count += 1
+
+                    await db.execute(
                         """INSERT OR IGNORE INTO messages
-                           (id, chat_id, from_me, body, timestamp, message_type)
-                           VALUES (?, ?, ?, ?, ?, ?)""",
-                        msg_rows,
+                           (id, chat_id, from_me, body, timestamp, message_type, media_url)
+                           VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                        (msg_id, jid, 1 if msg.get("fromMe") else 0,
+                         msg.get("body", ""), msg.get("timestamp", 0), msg_type, media_url),
                     )
 
         await db.execute(
@@ -128,5 +145,5 @@ async def _do_sync():
             (datetime.now(timezone.utc).isoformat(),),
         )
         await db.commit()
-        logger.info("Sync complete: %d chats, %d msg fetches, %d new pics",
-                     len(personal_chats), fetched_count, len(pic_map))
+        logger.info("Sync complete: %d chats, %d msg fetches, %d new pics, %d media uploaded",
+                     len(personal_chats), fetched_count, len(pic_map), media_count)

@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from pydantic import BaseModel
 
 from app.config import settings
@@ -13,6 +13,7 @@ from app.poller import start_scheduler, stop_scheduler
 from app.waha_client import waha_client
 from app.routers import contacts, actions, stats
 from app.services.sync_service import poll_and_update
+from app.services.media import get_from_r2
 
 logging.basicConfig(
     level=logging.INFO,
@@ -100,6 +101,18 @@ async def waha_start_session():
     if result:
         return result
     return {"status": "STARTING", "message": "Session is being initialized, QR will appear shortly"}
+
+
+@app.get("/api/media/{path:path}")
+async def media_proxy(path: str):
+    """Serve media from R2. Auth is handled by middleware."""
+    result = get_from_r2(path)
+    if not result:
+        raise HTTPException(status_code=404, detail="Media not found")
+    data, content_type = result
+    return Response(content=data, media_type=content_type, headers={
+        "Cache-Control": "public, max-age=31536000, immutable",
+    })
 
 
 @app.get("/{full_path:path}")

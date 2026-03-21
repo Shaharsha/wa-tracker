@@ -24,6 +24,7 @@ _SCHEMA_STATEMENTS = [
         body TEXT,
         timestamp INTEGER NOT NULL,
         message_type TEXT,
+        media_url TEXT,
         FOREIGN KEY (chat_id) REFERENCES contacts(jid)
     )""",
     "CREATE INDEX IF NOT EXISTS idx_messages_chat_ts ON messages(chat_id, timestamp DESC)",
@@ -38,6 +39,7 @@ _SCHEMA_STATEMENTS = [
 _MIGRATIONS = [
     "ALTER TABLE contacts ADD COLUMN dismissed_until INTEGER DEFAULT 0",
     "ALTER TABLE contacts ADD COLUMN is_blocked INTEGER DEFAULT 0",
+    "ALTER TABLE messages ADD COLUMN media_url TEXT",
 ]
 
 # These depend on columns added by migrations, so run last
