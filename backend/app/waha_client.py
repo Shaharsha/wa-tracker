@@ -83,17 +83,21 @@ class WAHAClient:
             return None
 
     async def start_session(self) -> dict[str, Any] | None:
-        """Start/create the WAHA session."""
+        """Start/create the WAHA session. Handles already-existing sessions."""
         try:
             resp = await self._client.post(
                 "/api/sessions/start",
                 json={"name": self._session},
             )
-            resp.raise_for_status()
-            return resp.json()
+            if resp.status_code in (200, 201):
+                return resp.json()
+            # Session might already exist — try getting its status instead
+            logger.warning("Start session returned %s, checking status", resp.status_code)
         except Exception as e:
-            logger.error("Failed to start session: %s", e)
-            return None
+            logger.warning("Start session request failed: %s, checking status", e)
+
+        # Fallback: return current session info regardless
+        return await self.get_session_info()
 
     async def get_qr_code(self) -> dict[str, Any] | None:
         """Get QR code for session authentication."""

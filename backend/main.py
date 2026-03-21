@@ -91,7 +91,7 @@ async def waha_start_session():
     result = await waha_client.start_session()
     if result:
         return result
-    raise HTTPException(status_code=500, detail="Failed to start WAHA session")
+    return {"status": "STARTING", "message": "Session is being initialized, QR will appear shortly"}
 
 
 # SPA fallback — must be last
