@@ -139,6 +139,23 @@ async def _do_sync():
                          msg.get("body", ""), msg.get("timestamp", 0), msg_type, media_url),
                     )
 
+                    # If this message has a reaction from us, save it as a "reply"
+                    # so the contact is marked as answered
+                    reactions = msg.get("reactions") or msg.get("_data", {}).get("reactions") or []
+                    for reaction in reactions:
+                        r_key = reaction.get("key", {})
+                        if r_key.get("fromMe"):
+                            r_ts = reaction.get("senderTimestampMs", 0)
+                            if isinstance(r_ts, (int, float)) and r_ts > 1000000000000:
+                                r_ts = int(r_ts / 1000)  # ms → seconds
+                            r_id = f"reaction_{msg_id}_{r_key.get('id', '')}"
+                            await db.execute(
+                                """INSERT OR IGNORE INTO messages
+                                   (id, chat_id, from_me, body, timestamp, message_type)
+                                   VALUES (?, ?, 1, ?, ?, 'reaction')""",
+                                (r_id, jid, reaction.get("text", ""), r_ts),
+                            )
+
         await db.execute(
             """INSERT INTO sync_state (key, value) VALUES ('last_sync_at', ?)
                ON CONFLICT(key) DO UPDATE SET value = excluded.value""",
