@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 def _is_personal_chat(chat_id: str) -> bool:
-    return chat_id.endswith("@c.us")
+    return chat_id.endswith("@c.us") or chat_id.endswith("@s.whatsapp.net")
 
 
 def _extract_phone(jid: str) -> str:
