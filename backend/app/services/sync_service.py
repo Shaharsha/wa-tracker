@@ -19,6 +19,29 @@ def _extract_phone(jid: str) -> str:
     return jid.split("@")[0]
 
 
+def _detect_type(msg: dict) -> str | None:
+    """Detect message type from WAHA's nested _data when type field is null."""
+    data = msg.get("_data", {})
+    message = data.get("message", {})
+    if not message:
+        return None
+    # Check for known message types in the nested structure
+    type_map = {
+        "imageMessage": "image",
+        "videoMessage": "video",
+        "audioMessage": "audio",
+        "documentMessage": "document",
+        "stickerMessage": "sticker",
+        "locationMessage": "location",
+        "contactMessage": "vcard",
+        "pttMessage": "ptt",
+    }
+    for key, msg_type in type_map.items():
+        if key in message:
+            return msg_type
+    return None
+
+
 async def poll_and_update():
     if _sync_lock.locked():
         logger.info("Sync already running, skipping")
@@ -109,14 +132,24 @@ async def _do_sync():
                     msg_id = msg.get("id")
                     if not msg_id:
                         continue
-                    msg_type = msg.get("type", "chat")
+                    msg_type = msg.get("type") or _detect_type(msg) or "chat"
                     has_media = msg.get("hasMedia") or msg_type in _MEDIA_TYPES
 
                     # Check if message already exists
-                    cursor = await db.execute("SELECT media_url FROM messages WHERE id = ?", (msg_id,))
+                    cursor = await db.execute("SELECT media_url, message_type FROM messages WHERE id = ?", (msg_id,))
                     existing = await cursor.fetchone()
                     if existing:
-                        continue  # Already have this message
+                        # Update type if it was null and we now know better
+                        if existing["message_type"] in (None, "", "chat") and msg_type not in (None, "", "chat"):
+                            await db.execute(
+                                "UPDATE messages SET message_type = ? WHERE id = ?",
+                                (msg_type, msg_id),
+                            )
+                        # Re-download media if we have the type now but no media_url
+                        if has_media and not existing["media_url"]:
+                            pass  # Fall through to media download below
+                        else:
+                            continue
 
                     # Download + upload media to R2 (in memory, no disk)
                     media_url = None
