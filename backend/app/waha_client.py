@@ -70,6 +70,16 @@ class WAHAClient:
             logger.error("Failed to get session info: %s", e)
             return None
 
+    async def stop_session(self) -> None:
+        """Stop the WAHA session."""
+        try:
+            await self._client.post(
+                "/api/sessions/stop",
+                json={"name": self._session},
+            )
+        except Exception as e:
+            logger.warning("Stop session failed (may not exist): %s", e)
+
     async def start_session(self) -> dict[str, Any] | None:
         """Start/create the WAHA session. Handles already-existing sessions."""
         try:
@@ -79,12 +89,18 @@ class WAHAClient:
             )
             if resp.status_code in (200, 201):
                 return resp.json()
-            # Session might already exist — try getting its status instead
-            logger.warning("Start session returned %s, checking status", resp.status_code)
+            # Session already exists (422) — stop it first, then restart
+            logger.warning("Start returned %s, stopping and retrying", resp.status_code)
+            await self.stop_session()
+            resp = await self._client.post(
+                "/api/sessions/start",
+                json={"name": self._session},
+            )
+            if resp.status_code in (200, 201):
+                return resp.json()
         except Exception as e:
-            logger.warning("Start session request failed: %s, checking status", e)
+            logger.warning("Start session failed: %s", e)
 
-        # Fallback: return current session info regardless
         return await self.get_session_info()
 
     async def get_qr_code(self) -> dict[str, Any] | None:
