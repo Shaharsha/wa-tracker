@@ -158,7 +158,7 @@ function Dashboard() {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: "var(--color-stone-50)" }}>
-      <StatsBar onShowQR={() => setShowQR(true)} />
+      <StatsBar onShowQR={() => setShowQR(true)} onSynced={refresh} />
       <ContactList contacts={contacts} dismissed={dismissed} onRefresh={refresh} />
       {showQR && <QRSetup onClose={() => setShowQR(false)} />}
     </div>

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { Contact } from "../types";
 import { formatRelativeTime, formatWaitTime, getUrgencyClasses, getUrgencyDot } from "../utils/time";
 import { DismissButton } from "./DismissButton";
@@ -19,6 +20,7 @@ export function ContactRow({
   onUndismiss,
   index,
 }: Props) {
+  const [imgError, setImgError] = useState(false);
   const displayName = contact.name || `+${contact.phone}`;
   const rawPreview = contact.last_message_preview || "";
   const preview = rawPreview.length > 90
@@ -40,22 +42,23 @@ export function ContactRow({
         isExpanded ? "bg-stone-100/60" : "hover:bg-stone-50"
       }`}>
         {/* Avatar */}
-        {contact.profile_picture_url ? (
+        {contact.profile_picture_url && !imgError ? (
           <img
             src={contact.profile_picture_url}
             alt={displayName}
             className="w-11 h-11 rounded-xl object-cover shrink-0 shadow-sm transition-transform duration-200 group-hover:scale-105"
-            onError={(e) => { e.currentTarget.style.display = "none"; e.currentTarget.nextElementSibling?.classList.remove("hidden"); }}
+            onError={() => setImgError(true)}
           />
-        ) : null}
-        <div
-          className={`w-11 h-11 rounded-xl flex items-center justify-center text-white font-medium text-sm shrink-0 shadow-sm transition-transform duration-200 group-hover:scale-105 ${contact.profile_picture_url ? "hidden" : ""}`}
-          style={{
-            background: `linear-gradient(135deg, hsl(${hue}, 40%, 55%), hsl(${hue + 20}, 45%, 45%))`,
-          }}
-        >
-          {initial}
-        </div>
+        ) : (
+          <div
+            className="w-11 h-11 rounded-xl flex items-center justify-center text-white font-medium text-sm shrink-0 shadow-sm transition-transform duration-200 group-hover:scale-105"
+            style={{
+              background: `linear-gradient(135deg, hsl(${hue}, 40%, 55%), hsl(${hue + 20}, 45%, 45%))`,
+            }}
+          >
+            {initial}
+          </div>
+        )}
 
         {/* Content */}
         <div className="flex-1 min-w-0">

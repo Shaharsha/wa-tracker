@@ -7,8 +7,7 @@ router = APIRouter(prefix="/api/contacts", tags=["actions"])
 
 @router.post("/{jid}/dismiss")
 async def dismiss(jid: str):
-    db = await get_db()
-    try:
+    async with get_db() as db:
         cursor = await db.execute(
             "UPDATE contacts SET is_dismissed = 1, updated_at = datetime('now') WHERE jid = ?",
             (jid,),
@@ -17,14 +16,11 @@ async def dismiss(jid: str):
         if cursor.rowcount == 0:
             raise HTTPException(status_code=404, detail="Contact not found")
         return {"status": "dismissed", "jid": jid}
-    finally:
-        await db.close()
 
 
 @router.post("/{jid}/undismiss")
 async def undismiss(jid: str):
-    db = await get_db()
-    try:
+    async with get_db() as db:
         cursor = await db.execute(
             "UPDATE contacts SET is_dismissed = 0, updated_at = datetime('now') WHERE jid = ?",
             (jid,),
@@ -33,5 +29,3 @@ async def undismiss(jid: str):
         if cursor.rowcount == 0:
             raise HTTPException(status_code=404, detail="Contact not found")
         return {"status": "undismissed", "jid": jid}
-    finally:
-        await db.close()

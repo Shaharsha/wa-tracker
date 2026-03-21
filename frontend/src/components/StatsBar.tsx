@@ -5,9 +5,10 @@ import { formatRelativeTime } from "../utils/time";
 
 interface Props {
   onShowQR: () => void;
+  onSynced: () => void;
 }
 
-export function StatsBar({ onShowQR }: Props) {
+export function StatsBar({ onShowQR, onSynced }: Props) {
   const [stats, setStats] = useState<Stats | null>(null);
   const [syncing, setSyncing] = useState(false);
 
@@ -29,6 +30,7 @@ export function StatsBar({ onShowQR }: Props) {
     try {
       await api.triggerSync();
       setStats(await api.getStats());
+      onSynced();
     } finally {
       setSyncing(false);
     }

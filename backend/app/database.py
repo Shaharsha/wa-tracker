@@ -1,4 +1,5 @@
 import aiosqlite
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from app.config import settings
@@ -30,22 +31,30 @@ _SCHEMA_STATEMENTS = [
         key TEXT PRIMARY KEY,
         value TEXT
     )""",
+    """CREATE VIEW IF NOT EXISTS v_last_messages AS
+        SELECT m.* FROM messages m
+        WHERE m.id = (
+            SELECT id FROM messages
+            WHERE chat_id = m.chat_id
+            ORDER BY timestamp DESC LIMIT 1
+        )""",
 ]
 
 
-async def get_db() -> aiosqlite.Connection:
+@asynccontextmanager
+async def get_db():
     db = await aiosqlite.connect(settings.database_path, timeout=30)
     db.row_factory = aiosqlite.Row
     await db.execute("PRAGMA journal_mode=WAL")
-    return db
+    try:
+        yield db
+    finally:
+        await db.close()
 
 
 async def init_db():
     Path(settings.database_path).parent.mkdir(parents=True, exist_ok=True)
-    db = await aiosqlite.connect(settings.database_path, timeout=30)
-    try:
+    async with get_db() as db:
         for statement in _SCHEMA_STATEMENTS:
             await db.execute(statement)
         await db.commit()
-    finally:
-        await db.close()

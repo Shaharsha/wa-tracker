@@ -1,15 +1,15 @@
 from app.database import get_db
 
-_UNANSWERED_QUERY = """
+_BASE_QUERY = """
 SELECT
     c.jid,
     c.name,
     c.phone,
     c.is_dismissed,
     c.profile_picture_url,
-    last_msg.body AS last_message_preview,
-    last_msg.timestamp AS last_message_timestamp,
-    last_msg.from_me AS last_message_from_me,
+    lm.body AS last_message_preview,
+    lm.timestamp AS last_message_timestamp,
+    lm.from_me AS last_message_from_me,
     (SELECT COUNT(*) FROM messages m2
      WHERE m2.chat_id = c.jid
      AND m2.from_me = 0
@@ -17,67 +17,35 @@ SELECT
          (SELECT MAX(m3.timestamp) FROM messages m3
           WHERE m3.chat_id = c.jid AND m3.from_me = 1), 0)
     ) AS unanswered_count,
-    (strftime('%s', 'now') - last_msg.timestamp) AS waiting_seconds
+    (strftime('%s', 'now') - lm.timestamp) AS waiting_seconds
 FROM contacts c
-JOIN messages last_msg ON last_msg.chat_id = c.jid
-    AND last_msg.id = (
-        SELECT id FROM messages
-        WHERE chat_id = c.jid
-        ORDER BY timestamp DESC LIMIT 1
-    )
-WHERE last_msg.from_me = 0
-  AND c.is_dismissed = :dismissed
-ORDER BY last_msg.timestamp ASC
-"""
-
-_ALL_UNANSWERED_QUERY = """
-SELECT
-    c.jid,
-    c.name,
-    c.phone,
-    c.is_dismissed,
-    c.profile_picture_url,
-    last_msg.body AS last_message_preview,
-    last_msg.timestamp AS last_message_timestamp,
-    last_msg.from_me AS last_message_from_me,
-    (SELECT COUNT(*) FROM messages m2
-     WHERE m2.chat_id = c.jid
-     AND m2.from_me = 0
-     AND m2.timestamp > COALESCE(
-         (SELECT MAX(m3.timestamp) FROM messages m3
-          WHERE m3.chat_id = c.jid AND m3.from_me = 1), 0)
-    ) AS unanswered_count,
-    (strftime('%s', 'now') - last_msg.timestamp) AS waiting_seconds
-FROM contacts c
-JOIN messages last_msg ON last_msg.chat_id = c.jid
-    AND last_msg.id = (
-        SELECT id FROM messages
-        WHERE chat_id = c.jid
-        ORDER BY timestamp DESC LIMIT 1
-    )
-WHERE last_msg.from_me = 0
-ORDER BY last_msg.timestamp ASC
+JOIN v_last_messages lm ON lm.chat_id = c.jid
+WHERE lm.from_me = 0
+  {dismissed_filter}
+ORDER BY lm.timestamp ASC
 """
 
 
-async def get_unanswered_contacts(include_dismissed: bool = False):
-    db = await get_db()
-    try:
+def _to_contact(row) -> dict:
+    d = dict(row)
+    d["is_dismissed"] = bool(d["is_dismissed"])
+    d["last_message_from_me"] = bool(d["last_message_from_me"])
+    return d
+
+
+async def get_unanswered_contacts(include_dismissed: bool = False) -> list[dict]:
+    async with get_db() as db:
         if include_dismissed:
-            cursor = await db.execute(_ALL_UNANSWERED_QUERY)
+            query = _BASE_QUERY.format(dismissed_filter="")
+            cursor = await db.execute(query)
         else:
-            cursor = await db.execute(_UNANSWERED_QUERY, {"dismissed": 0})
-        rows = await cursor.fetchall()
-        return [dict(row) for row in rows]
-    finally:
-        await db.close()
+            query = _BASE_QUERY.format(dismissed_filter="AND c.is_dismissed = 0")
+            cursor = await db.execute(query)
+        return [_to_contact(row) for row in await cursor.fetchall()]
 
 
-async def get_dismissed_contacts():
-    db = await get_db()
-    try:
-        cursor = await db.execute(_UNANSWERED_QUERY, {"dismissed": 1})
-        rows = await cursor.fetchall()
-        return [dict(row) for row in rows]
-    finally:
-        await db.close()
+async def get_dismissed_contacts() -> list[dict]:
+    async with get_db() as db:
+        query = _BASE_QUERY.format(dismissed_filter="AND c.is_dismissed = 1")
+        cursor = await db.execute(query)
+        return [_to_contact(row) for row in await cursor.fetchall()]

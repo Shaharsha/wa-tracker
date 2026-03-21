@@ -10,30 +10,21 @@ router = APIRouter(prefix="/api", tags=["stats"])
 
 @router.get("/stats")
 async def stats():
-    db = await get_db()
-    try:
+    async with get_db() as db:
         cursor = await db.execute("""
             SELECT COUNT(DISTINCT c.jid) as cnt
             FROM contacts c
-            JOIN messages last_msg ON last_msg.chat_id = c.jid
-                AND last_msg.id = (
-                    SELECT id FROM messages WHERE chat_id = c.jid
-                    ORDER BY timestamp DESC LIMIT 1
-                )
-            WHERE last_msg.from_me = 0 AND c.is_dismissed = 0
+            JOIN v_last_messages lm ON lm.chat_id = c.jid
+            WHERE lm.from_me = 0 AND c.is_dismissed = 0
         """)
         row = await cursor.fetchone()
         total_unanswered = row["cnt"] if row else 0
 
         cursor = await db.execute("""
-            SELECT MIN(last_msg.timestamp) as oldest_ts
+            SELECT MIN(lm.timestamp) as oldest_ts
             FROM contacts c
-            JOIN messages last_msg ON last_msg.chat_id = c.jid
-                AND last_msg.id = (
-                    SELECT id FROM messages WHERE chat_id = c.jid
-                    ORDER BY timestamp DESC LIMIT 1
-                )
-            WHERE last_msg.from_me = 0 AND c.is_dismissed = 0
+            JOIN v_last_messages lm ON lm.chat_id = c.jid
+            WHERE lm.from_me = 0 AND c.is_dismissed = 0
         """)
         row = await cursor.fetchone()
         oldest_ts = row["oldest_ts"] if row and row["oldest_ts"] else None
@@ -48,8 +39,6 @@ async def stats():
         )
         row = await cursor.fetchone()
         last_sync_at = row["value"] if row else None
-    finally:
-        await db.close()
 
     waha_status = await waha_client.get_session_status() or "UNKNOWN"
 
@@ -64,8 +53,4 @@ async def stats():
 
 @router.get("/health")
 async def health():
-    waha_status = await waha_client.get_session_status()
-    return {
-        "status": "ok",
-        "waha_session": waha_status or "UNKNOWN",
-    }
+    return {"status": "ok"}

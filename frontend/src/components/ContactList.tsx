@@ -32,21 +32,30 @@ export function ContactList({ contacts, dismissed, onRefresh }: Props) {
       setExpandedJid(null);
       clear();
     } else {
+      clear();
       setExpandedJid(jid);
       fetchMessages(jid);
     }
   };
 
   const handleDismiss = async (jid: string) => {
-    await api.dismiss(jid);
-    setExpandedJid(null);
-    onRefresh();
+    try {
+      await api.dismiss(jid);
+      setExpandedJid(null);
+      onRefresh();
+    } catch {
+      // Silently fail — contact list will refresh on next auto-poll
+    }
   };
 
   const handleUndismiss = async (jid: string) => {
-    await api.undismiss(jid);
-    setExpandedJid(null);
-    onRefresh();
+    try {
+      await api.undismiss(jid);
+      setExpandedJid(null);
+      onRefresh();
+    } catch {
+      // Silently fail
+    }
   };
 
   return (
@@ -54,7 +63,6 @@ export function ContactList({ contacts, dismissed, onRefresh }: Props) {
       {/* Tab bar + Search */}
       <div className="sticky top-0 z-10 bg-stone-50/95 backdrop-blur-sm border-b border-stone-200/60">
         <div className="flex items-center gap-3 px-5 py-3">
-          {/* Tabs */}
           <div className="flex items-center bg-stone-100 rounded-lg p-0.5">
             <button
               onClick={() => setTab("unanswered")}
@@ -86,7 +94,6 @@ export function ContactList({ contacts, dismissed, onRefresh }: Props) {
             </button>
           </div>
 
-          {/* Search */}
           <div className="ml-auto relative">
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8" />
@@ -103,7 +110,6 @@ export function ContactList({ contacts, dismissed, onRefresh }: Props) {
         </div>
       </div>
 
-      {/* Contact list */}
       <div className="flex-1 bg-white rounded-b-2xl overflow-hidden">
         {filtered.length === 0 ? (
           <EmptyState tab={tab} />

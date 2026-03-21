@@ -1,4 +1,3 @@
-import asyncio
 import hmac
 import logging
 from contextlib import asynccontextmanager
@@ -24,17 +23,15 @@ logger = logging.getLogger(__name__)
 STATIC_DIR = Path(__file__).parent / "static"
 STATIC_DIR_RESOLVED = STATIC_DIR.resolve()
 
-# Endpoints that don't require auth
 PUBLIC_PATHS = {"/api/health", "/api/login"}
-
-# Guard against concurrent syncs
-_sync_lock = asyncio.Lock()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     if not settings.auth_token:
         logger.warning("AUTH_TOKEN is not set — all API endpoints are unprotected!")
+    if settings.auth_token and not settings.dashboard_password:
+        logger.error("DASHBOARD_PASSWORD is empty — login will fail!")
     await init_db()
     start_scheduler()
     yield
@@ -64,6 +61,8 @@ class LoginRequest(BaseModel):
 
 @app.post("/api/login")
 async def login(req: LoginRequest):
+    if not settings.dashboard_password:
+        raise HTTPException(status_code=503, detail="Authentication not configured")
     user_ok = hmac.compare_digest(req.username, settings.dashboard_username)
     pass_ok = hmac.compare_digest(req.password, settings.dashboard_password)
     if user_ok and pass_ok:
@@ -78,16 +77,12 @@ app.include_router(stats.router)
 
 @app.post("/api/sync")
 async def manual_sync():
-    if _sync_lock.locked():
-        return {"status": "sync_already_running"}
-    async with _sync_lock:
-        await poll_and_update()
+    await poll_and_update()  # sync_service handles its own lock
     return {"status": "sync_complete"}
 
 
 @app.get("/api/waha/session")
 async def waha_session():
-    """Get WAHA session status + QR if needed."""
     info = await waha_client.get_session_info()
     if not info:
         return {"status": "UNKNOWN", "qr": None}
@@ -101,21 +96,18 @@ async def waha_session():
 
 @app.post("/api/waha/start")
 async def waha_start_session():
-    """Start the WAHA session (triggers QR generation)."""
     result = await waha_client.start_session()
     if result:
         return result
     return {"status": "STARTING", "message": "Session is being initialized, QR will appear shortly"}
 
 
-# SPA fallback — must be last
 @app.get("/{full_path:path}")
 async def spa_fallback(full_path: str):
     if full_path.startswith("api/"):
         raise HTTPException(status_code=404, detail="Not found")
     if STATIC_DIR.exists():
         candidate = (STATIC_DIR / full_path).resolve()
-        # Prevent path traversal
         if not str(candidate).startswith(str(STATIC_DIR_RESOLVED)):
             raise HTTPException(status_code=403, detail="Forbidden")
         if full_path and candidate.is_file():
