@@ -42,7 +42,9 @@ function LoginScreen() {
       <div className="animate-scale-in relative w-full max-w-sm">
         <div className="text-center mb-8">
           <Logo size="lg" className="mx-auto mb-5" />
-          <h1 className="font-serif text-3xl text-stone-900 mb-1">WA Tracker</h1>
+          <h1 className="text-2xl text-stone-900 mb-1 font-semibold tracking-tight">
+            <span className="text-stone-400 font-normal">wa</span>tracker
+          </h1>
           <p className="text-stone-400 text-sm tracking-wide">Don't leave them waiting.</p>
         </div>
 
@@ -97,8 +99,11 @@ function ConnectionRequired({ onConnected }: { onConnected: () => void }) {
     <div className="min-h-screen flex flex-col" style={{ background: "var(--color-stone-50)" }}>
       <div className="flex-1 flex items-center justify-center px-4">
         <div className="animate-fade-in text-center max-w-md">
-          <Logo size="lg" className="mx-auto mb-6" />
-          <h1 className="font-serif text-2xl text-stone-800 mb-2">Connect WhatsApp</h1>
+          <Logo size="lg" className="mx-auto mb-4" />
+          <h1 className="text-xl text-stone-900 mb-1 font-semibold tracking-tight">
+            <span className="text-stone-400 font-normal">wa</span>tracker
+          </h1>
+          <h2 className="text-stone-600 text-sm font-medium mb-2">Connect WhatsApp</h2>
           <p className="text-stone-400 text-sm mb-8 leading-relaxed">
             Your WhatsApp account isn't linked yet. Start a session and scan the QR code
             with your phone to begin tracking unanswered messages.
