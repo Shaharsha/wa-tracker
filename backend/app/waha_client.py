@@ -159,7 +159,7 @@ class WAHAClient:
             logger.warning("Stop session failed: %s", e)
 
     async def start_session(self) -> dict[str, Any] | None:
-        """Start the WAHA session. Cleans up any existing failed session first."""
+        """Start the WAHA session. Restarts if already exists (preserves auth)."""
         logger.info("Starting WAHA session '%s'", self._session)
 
         start_body = {"name": self._session, "config": _SESSION_CONFIG}
@@ -176,10 +176,9 @@ class WAHAClient:
         except Exception as e:
             logger.error("Start session request failed: %s", e)
 
-        # Session exists — stop, delete, then start fresh
-        logger.info("Session already exists, doing stop → delete → start")
+        # Session already exists — stop and restart (preserves saved auth)
+        logger.info("Session already exists, doing stop → start (preserving auth)")
         await self.stop_session()
-        await self._delete_session()
 
         try:
             resp = await self._client.post("/api/sessions/start", json=start_body)
