@@ -3,10 +3,12 @@ export interface Contact {
   name: string | null;
   phone: string;
   is_dismissed: boolean;
+  is_blocked: boolean;
   profile_picture_url: string | null;
   last_message_preview: string;
   last_message_timestamp: number;
   last_message_from_me: boolean;
+  last_message_type: string;
   unanswered_count: number;
   waiting_seconds: number;
 }

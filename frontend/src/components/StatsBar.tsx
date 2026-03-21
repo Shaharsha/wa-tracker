@@ -47,7 +47,7 @@ export function StatsBar({ onShowQR, onSynced }: Props) {
   const wahaOk = stats.waha_status === "WORKING";
 
   return (
-    <header className="bg-white border-b border-stone-200/80 animate-fade-in">
+    <header className="bg-white border-b border-stone-200/80 animate-fade-in sticky top-0 z-20">
       <div className="max-w-3xl mx-auto px-4 py-4 flex flex-wrap items-center gap-x-6 gap-y-2">
         {/* Title */}
         <div className="flex items-center gap-2.5 mr-auto">
@@ -62,7 +62,9 @@ export function StatsBar({ onShowQR, onSynced }: Props) {
             <circle cx="44" cy="18" r="2.5" fill="#fbbf24" opacity="0.5" />
             <defs><linearGradient id="hbg" x1="2" y1="2" x2="62" y2="62"><stop stopColor="#3d3a35"/><stop offset="1" stopColor="#1a1917"/></linearGradient></defs>
           </svg>
-          <h1 className="font-serif text-xl text-stone-900">WA Tracker</h1>
+          <h1 className="text-stone-900 text-[15px] font-semibold tracking-tight">
+            <span className="text-stone-400 font-normal">wa</span>tracker
+          </h1>
         </div>
 
         {/* Stats pills */}

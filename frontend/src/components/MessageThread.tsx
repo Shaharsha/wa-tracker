@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { Message } from "../types";
-import { formatTimestamp } from "../utils/time";
+import { formatTimestamp, formatMediaType } from "../utils/time";
 
 interface Props {
   messages: Message[];
@@ -49,8 +49,8 @@ export function MessageThread({ messages, loading }: Props) {
             >
               <p className="break-words whitespace-pre-wrap">
                 {msg.body || (
-                  <span className={msg.from_me ? "text-stone-400" : "text-stone-300"}>
-                    [{msg.message_type}]
+                  <span className={`italic ${msg.from_me ? "text-stone-400" : "text-stone-300"}`}>
+                    {formatMediaType(msg.message_type) || "Message"}
                   </span>
                 )}
               </p>

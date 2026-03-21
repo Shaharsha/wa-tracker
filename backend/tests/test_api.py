@@ -140,6 +140,21 @@ def test_undismiss_nonexistent_contact(client):
     assert resp.status_code == 404
 
 
+def test_block_contact(client):
+    _run(_seed_contact())
+    resp = client.post("/api/contacts/999@c.us/block", headers=_auth())
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "blocked"
+
+
+def test_unblock_contact(client):
+    _run(_seed_contact())
+    client.post("/api/contacts/999@c.us/block", headers=_auth())
+    resp = client.post("/api/contacts/999@c.us/unblock", headers=_auth())
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "unblocked"
+
+
 # --- Messages ---
 
 def test_get_messages(client):

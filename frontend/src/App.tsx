@@ -117,7 +117,7 @@ function ConnectionRequired({ onConnected }: { onConnected: () => void }) {
 }
 
 function Dashboard() {
-  const { contacts, dismissed, loading, error, refresh } = useContacts();
+  const { contacts, dismissed, blocked, loading, error, refresh } = useContacts();
   const [showQR, setShowQR] = useState(false);
   const [stats, setStats] = useState<Stats | null>(null);
   const [checkingConnection, setCheckingConnection] = useState(true);
@@ -159,7 +159,7 @@ function Dashboard() {
   return (
     <div className="min-h-screen flex flex-col" style={{ background: "var(--color-stone-50)" }}>
       <StatsBar onShowQR={() => setShowQR(true)} onSynced={refresh} />
-      <ContactList contacts={contacts} dismissed={dismissed} onRefresh={refresh} />
+      <ContactList contacts={contacts} dismissed={dismissed} blocked={blocked} onRefresh={refresh} />
       {showQR && <QRSetup onClose={() => setShowQR(false)} />}
     </div>
   );

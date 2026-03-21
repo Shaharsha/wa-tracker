@@ -13,7 +13,8 @@ _SCHEMA_STATEMENTS = [
         profile_picture_url TEXT,
         first_seen_at TEXT DEFAULT (datetime('now')),
         updated_at TEXT DEFAULT (datetime('now')),
-        is_dismissed INTEGER DEFAULT 0
+        dismissed_until INTEGER DEFAULT 0,
+        is_blocked INTEGER DEFAULT 0
     )""",
     """CREATE TABLE IF NOT EXISTS messages (
         id TEXT PRIMARY KEY,
@@ -26,7 +27,7 @@ _SCHEMA_STATEMENTS = [
     )""",
     "CREATE INDEX IF NOT EXISTS idx_messages_chat_ts ON messages(chat_id, timestamp DESC)",
     "CREATE INDEX IF NOT EXISTS idx_messages_from_me ON messages(chat_id, from_me, timestamp DESC)",
-    "CREATE INDEX IF NOT EXISTS idx_contacts_dismissed ON contacts(is_dismissed)",
+    "CREATE INDEX IF NOT EXISTS idx_contacts_blocked ON contacts(is_blocked)",
     """CREATE TABLE IF NOT EXISTS sync_state (
         key TEXT PRIMARY KEY,
         value TEXT
@@ -38,6 +39,13 @@ _SCHEMA_STATEMENTS = [
             WHERE chat_id = m.chat_id
             ORDER BY timestamp DESC LIMIT 1
         )""",
+]
+
+# Migration: add new columns if upgrading from old schema
+_MIGRATIONS = [
+    "ALTER TABLE contacts ADD COLUMN dismissed_until INTEGER DEFAULT 0",
+    "ALTER TABLE contacts ADD COLUMN is_blocked INTEGER DEFAULT 0",
+    "CREATE INDEX IF NOT EXISTS idx_contacts_blocked ON contacts(is_blocked)",
 ]
 
 
@@ -57,4 +65,10 @@ async def init_db():
     async with get_db() as db:
         for statement in _SCHEMA_STATEMENTS:
             await db.execute(statement)
+        # Run migrations (ignore errors for columns that already exist)
+        for migration in _MIGRATIONS:
+            try:
+                await db.execute(migration)
+            except Exception:
+                pass
         await db.commit()

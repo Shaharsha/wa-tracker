@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 
 from app.database import get_db
-from app.services.urgency import get_unanswered_contacts, get_dismissed_contacts
+from app.services.urgency import get_unanswered_contacts, get_dismissed_contacts, get_blocked_contacts
 
 router = APIRouter(prefix="/api/contacts", tags=["contacts"])
 
@@ -14,6 +14,11 @@ async def unanswered(include_dismissed: bool = False):
 @router.get("/dismissed")
 async def dismissed():
     return await get_dismissed_contacts()
+
+
+@router.get("/blocked")
+async def blocked():
+    return await get_blocked_contacts()
 
 
 @router.get("/{jid}/messages")

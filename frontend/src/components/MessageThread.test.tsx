@@ -30,6 +30,6 @@ describe('MessageThread', () => {
       { id: '1', chat_id: '123@c.us', from_me: false, body: '', timestamp: 1000, message_type: 'image' },
     ]
     render(<MessageThread messages={msgs} loading={false} />)
-    expect(screen.getByText('[image]')).toBeInTheDocument()
+    expect(screen.getByText('Photo')).toBeInTheDocument()
   })
 })

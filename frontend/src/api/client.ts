@@ -66,6 +66,9 @@ export const api = {
   getDismissed: () =>
     apiFetch<import("../types").Contact[]>("/contacts/dismissed"),
 
+  getBlocked: () =>
+    apiFetch<import("../types").Contact[]>("/contacts/blocked"),
+
   getMessages: (jid: string, limit = 50) =>
     apiFetch<import("../types").Message[]>(
       `/contacts/${encodeURIComponent(jid)}/messages?limit=${limit}`
@@ -78,6 +81,16 @@ export const api = {
 
   undismiss: (jid: string) =>
     apiFetch(`/contacts/${encodeURIComponent(jid)}/undismiss`, {
+      method: "POST",
+    }),
+
+  block: (jid: string) =>
+    apiFetch(`/contacts/${encodeURIComponent(jid)}/block`, {
+      method: "POST",
+    }),
+
+  unblock: (jid: string) =>
+    apiFetch(`/contacts/${encodeURIComponent(jid)}/unblock`, {
       method: "POST",
     }),
 

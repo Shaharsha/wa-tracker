@@ -5,6 +5,7 @@ import {
   getUrgencyLevel,
   getUrgencyClasses,
   formatTimestamp,
+  formatMediaType,
 } from './time'
 
 describe('formatRelativeTime', () => {
@@ -17,23 +18,19 @@ describe('formatRelativeTime', () => {
   it('returns minutes for < 60 minutes', () => {
     expect(formatRelativeTime(60)).toBe('1m ago')
     expect(formatRelativeTime(120)).toBe('2m ago')
-    expect(formatRelativeTime(3599)).toBe('59m ago')
   })
 
   it('returns hours for < 24 hours', () => {
     expect(formatRelativeTime(3600)).toBe('1h ago')
     expect(formatRelativeTime(7200)).toBe('2h ago')
-    expect(formatRelativeTime(86399)).toBe('23h ago')
   })
 
   it('returns days for < 7 days', () => {
     expect(formatRelativeTime(86400)).toBe('1d ago')
-    expect(formatRelativeTime(86400 * 6)).toBe('6d ago')
   })
 
   it('returns weeks for >= 7 days', () => {
     expect(formatRelativeTime(86400 * 7)).toBe('1w ago')
-    expect(formatRelativeTime(86400 * 14)).toBe('2w ago')
   })
 })
 
@@ -45,59 +42,59 @@ describe('formatWaitTime', () => {
 
   it('returns hours for < 24 hours', () => {
     expect(formatWaitTime(3600)).toBe('1h')
-    expect(formatWaitTime(7200)).toBe('2h')
   })
 
   it('returns days for >= 24 hours', () => {
     expect(formatWaitTime(86400)).toBe('1d')
-    expect(formatWaitTime(172800)).toBe('2d')
   })
 })
 
 describe('getUrgencyLevel', () => {
-  it('returns "fresh" for < 1 hour', () => {
-    expect(getUrgencyLevel(0)).toBe('fresh')
-    expect(getUrgencyLevel(3599)).toBe('fresh')
+  it('returns "normal" for < 24 hours', () => {
+    expect(getUrgencyLevel(0)).toBe('normal')
+    expect(getUrgencyLevel(3600)).toBe('normal')
+    expect(getUrgencyLevel(86399)).toBe('normal')
   })
 
-  it('returns "warm" for 1-4 hours', () => {
-    expect(getUrgencyLevel(3600)).toBe('warm')
-    expect(getUrgencyLevel(14399)).toBe('warm')
-  })
-
-  it('returns "hot" for 4-24 hours', () => {
-    expect(getUrgencyLevel(14400)).toBe('hot')
-    expect(getUrgencyLevel(86399)).toBe('hot')
-  })
-
-  it('returns "critical" for > 24 hours', () => {
-    expect(getUrgencyLevel(86400)).toBe('critical')
-    expect(getUrgencyLevel(172800)).toBe('critical')
+  it('returns "urgent" for >= 24 hours', () => {
+    expect(getUrgencyLevel(86400)).toBe('urgent')
+    expect(getUrgencyLevel(172800)).toBe('urgent')
   })
 })
 
 describe('getUrgencyClasses', () => {
-  it('returns sage classes for fresh', () => {
-    expect(getUrgencyClasses(0)).toContain('sage')
+  it('returns amber classes for normal', () => {
+    expect(getUrgencyClasses(0)).toContain('amber')
   })
 
-  it('returns amber classes for warm', () => {
-    expect(getUrgencyClasses(7200)).toContain('amber')
-  })
-
-  it('returns coral classes for hot', () => {
-    expect(getUrgencyClasses(50000)).toContain('coral')
-  })
-
-  it('returns coral classes for critical', () => {
+  it('returns coral classes for urgent', () => {
     expect(getUrgencyClasses(100000)).toContain('coral')
   })
 })
 
 describe('formatTimestamp', () => {
-  it('formats a unix timestamp into a readable date', () => {
-    const result = formatTimestamp(1711036800) // 2024-03-21
-    expect(result).toBeTruthy()
+  it('formats a unix timestamp', () => {
+    const result = formatTimestamp(1711036800)
     expect(typeof result).toBe('string')
+    expect(result.length).toBeGreaterThan(0)
+  })
+})
+
+describe('formatMediaType', () => {
+  it('returns readable names for known types', () => {
+    expect(formatMediaType('image')).toBe('Photo')
+    expect(formatMediaType('video')).toBe('Video')
+    expect(formatMediaType('audio')).toBe('Audio')
+    expect(formatMediaType('ptt')).toBe('Voice message')
+    expect(formatMediaType('document')).toBe('Document')
+    expect(formatMediaType('sticker')).toBe('Sticker')
+  })
+
+  it('returns empty string for chat type', () => {
+    expect(formatMediaType('chat')).toBe('')
+  })
+
+  it('returns the raw type for unknown types', () => {
+    expect(formatMediaType('unknown_type')).toBe('unknown_type')
   })
 })

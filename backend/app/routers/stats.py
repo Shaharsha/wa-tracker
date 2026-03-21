@@ -15,7 +15,7 @@ async def stats():
             SELECT COUNT(DISTINCT c.jid) as cnt
             FROM contacts c
             JOIN v_last_messages lm ON lm.chat_id = c.jid
-            WHERE lm.from_me = 0 AND c.is_dismissed = 0
+            WHERE lm.from_me = 0 AND c.is_blocked = 0 AND (c.dismissed_until = 0 OR lm.timestamp > c.dismissed_until)
         """)
         row = await cursor.fetchone()
         total_unanswered = row["cnt"] if row else 0
@@ -24,7 +24,7 @@ async def stats():
             SELECT MIN(lm.timestamp) as oldest_ts
             FROM contacts c
             JOIN v_last_messages lm ON lm.chat_id = c.jid
-            WHERE lm.from_me = 0 AND c.is_dismissed = 0
+            WHERE lm.from_me = 0 AND c.is_blocked = 0 AND (c.dismissed_until = 0 OR lm.timestamp > c.dismissed_until)
         """)
         row = await cursor.fetchone()
         oldest_ts = row["oldest_ts"] if row and row["oldest_ts"] else None

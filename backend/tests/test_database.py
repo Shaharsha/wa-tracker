@@ -26,7 +26,7 @@ async def test_init_db_creates_indexes():
         indexes = [row["name"] for row in await cursor.fetchall()]
         assert "idx_messages_chat_ts" in indexes
         assert "idx_messages_from_me" in indexes
-        assert "idx_contacts_dismissed" in indexes
+        assert "idx_contacts_blocked" in indexes
 
 
 @pytest.mark.asyncio
@@ -75,7 +75,8 @@ async def test_upsert_contact():
         assert row is not None
         assert row["name"] == "Test User"
         assert row["phone"] == "123"
-        assert row["is_dismissed"] == 0
+        assert row["dismissed_until"] == 0
+        assert row["is_blocked"] == 0
 
 
 @pytest.mark.asyncio

@@ -1,14 +1,15 @@
 import { useState } from "react";
 import type { Contact } from "../types";
-import { formatRelativeTime, formatWaitTime, getUrgencyClasses, getUrgencyDot } from "../utils/time";
-import { DismissButton } from "./DismissButton";
+import { formatRelativeTime, formatWaitTime, getUrgencyClasses, getUrgencyDot, formatMediaType } from "../utils/time";
 
 interface Props {
   contact: Contact;
   isExpanded: boolean;
   onClick: () => void;
   onDismiss: () => void;
+  onBlock: () => void;
   onUndismiss: () => void;
+  onUnblock: () => void;
   index: number;
 }
 
@@ -17,19 +18,20 @@ export function ContactRow({
   isExpanded,
   onClick,
   onDismiss,
+  onBlock,
   onUndismiss,
+  onUnblock,
   index,
 }: Props) {
   const [imgError, setImgError] = useState(false);
   const displayName = contact.name || `+${contact.phone}`;
   const rawPreview = contact.last_message_preview || "";
-  const preview = rawPreview.length > 90
-    ? rawPreview.slice(0, 90) + "\u2026"
-    : rawPreview;
+  const mediaLabel = formatMediaType(contact.last_message_type || "chat");
+  const preview = rawPreview
+    ? rawPreview.length > 90 ? rawPreview.slice(0, 90) + "\u2026" : rawPreview
+    : mediaLabel ? `${mediaLabel}` : "";
 
   const initial = (contact.name || contact.phone)[0]?.toUpperCase() || "?";
-
-  // Generate a warm color for the avatar based on the name
   const hue = displayName.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
 
   return (
@@ -71,11 +73,15 @@ export function ContactRow({
             </span>
           </div>
           <p className="text-[13px] text-stone-400 truncate mt-0.5 leading-relaxed">
-            {preview || <span className="italic">[media]</span>}
+            {mediaLabel && !rawPreview ? (
+              <span className="italic">{mediaLabel}</span>
+            ) : (
+              preview
+            )}
           </p>
         </div>
 
-        {/* Badges + Action */}
+        {/* Badges + Actions */}
         <div className="flex items-center gap-2 shrink-0">
           {contact.unanswered_count > 0 && (
             <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${getUrgencyClasses(contact.waiting_seconds)}`}>
@@ -88,15 +94,45 @@ export function ContactRow({
               {formatWaitTime(contact.waiting_seconds)}
             </span>
           </div>
-          <DismissButton
-            isDismissed={!!contact.is_dismissed}
-            onDismiss={onDismiss}
-            onUndismiss={onUndismiss}
-          />
+
+          {/* Actions — show on hover */}
+          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+            {contact.is_blocked ? (
+              <button
+                onClick={(e) => { e.stopPropagation(); onUnblock(); }}
+                className="text-[11px] font-medium text-sage-600 bg-sage-50 hover:bg-sage-100 px-2 py-1 rounded-lg border border-sage-100 transition-all cursor-pointer"
+              >
+                Unblock
+              </button>
+            ) : contact.is_dismissed ? (
+              <button
+                onClick={(e) => { e.stopPropagation(); onUndismiss(); }}
+                className="text-[11px] font-medium text-sage-600 bg-sage-50 hover:bg-sage-100 px-2 py-1 rounded-lg border border-sage-100 transition-all cursor-pointer"
+              >
+                Restore
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={(e) => { e.stopPropagation(); onDismiss(); }}
+                  className="text-[11px] text-stone-300 hover:text-stone-500 px-1.5 py-1 rounded-lg hover:bg-stone-100 transition-all cursor-pointer"
+                  title="Skip for now — reappears if they message again"
+                >
+                  Skip
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); onBlock(); }}
+                  className="text-[11px] text-stone-300 hover:text-coral-500 px-1.5 py-1 rounded-lg hover:bg-coral-50 transition-all cursor-pointer"
+                  title="Block forever — never show in unanswered"
+                >
+                  Block
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Subtle separator */}
       <div className="mx-5">
         <div className="border-b border-stone-100" />
       </div>
