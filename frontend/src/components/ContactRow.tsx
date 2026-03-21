@@ -40,7 +40,7 @@ export function ContactRow({
       style={{ animationDelay: `${index * 40}ms` }}
       onClick={onClick}
     >
-      <div className={`flex items-center gap-3.5 px-5 py-4 transition-colors duration-150 ${
+      <div className={`flex items-center gap-3 px-4 sm:px-5 py-3 sm:py-4 transition-colors duration-150 ${
         isExpanded ? "bg-stone-100/60" : "hover:bg-stone-50"
       }`}>
         {/* Avatar */}
@@ -48,12 +48,12 @@ export function ContactRow({
           <img
             src={contact.profile_picture_url}
             alt={displayName}
-            className="w-11 h-11 rounded-xl object-cover shrink-0 shadow-sm transition-transform duration-200 group-hover:scale-105"
+            className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl object-cover shrink-0 shadow-sm transition-transform duration-200 group-hover:scale-105"
             onError={() => setImgError(true)}
           />
         ) : (
           <div
-            className="w-11 h-11 rounded-xl flex items-center justify-center text-white font-medium text-sm shrink-0 shadow-sm transition-transform duration-200 group-hover:scale-105"
+            className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center text-white font-medium text-sm shrink-0 shadow-sm transition-transform duration-200 group-hover:scale-105"
             style={{
               background: `linear-gradient(135deg, hsl(${hue}, 40%, 55%), hsl(${hue + 20}, 45%, 45%))`,
             }}
@@ -133,7 +133,7 @@ export function ContactRow({
         </div>
       </div>
 
-      <div className="mx-5">
+      <div className="mx-4 sm:mx-5">
         <div className="border-b border-stone-100" />
       </div>
     </div>

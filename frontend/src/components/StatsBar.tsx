@@ -48,9 +48,9 @@ export function StatsBar({ onShowQR, onSynced }: Props) {
 
   return (
     <header className="bg-white border-b border-stone-200/80 animate-fade-in sticky top-0 z-20">
-      <div className="max-w-3xl mx-auto px-4 py-4 flex flex-wrap items-center gap-x-6 gap-y-2">
-        {/* Title */}
-        <div className="flex items-center gap-2.5 mr-auto">
+      <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
+        {/* Logo */}
+        <div className="flex items-center gap-2 shrink-0">
           <svg width="28" height="28" viewBox="0 0 64 64" fill="none">
             <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#hbg)" />
             <rect x="2.5" y="2.5" width="59" height="59" rx="13.5" stroke="white" strokeOpacity="0.08" />
@@ -62,20 +62,20 @@ export function StatsBar({ onShowQR, onSynced }: Props) {
             <circle cx="44" cy="18" r="2.5" fill="#fbbf24" opacity="0.5" />
             <defs><linearGradient id="hbg" x1="2" y1="2" x2="62" y2="62"><stop stopColor="#3d3a35"/><stop offset="1" stopColor="#1a1917"/></linearGradient></defs>
           </svg>
-          <h1 className="text-stone-900 text-[15px] font-semibold tracking-tight">
+          <h1 className="text-stone-900 text-[15px] font-semibold tracking-tight hidden sm:block">
             <span className="text-stone-400 font-normal">wa</span>tracker
           </h1>
         </div>
 
-        {/* Stats pills */}
-        <div className="flex items-center gap-3 text-xs">
-          <div className="flex items-center gap-1.5 bg-stone-50 rounded-lg px-3 py-1.5 border border-stone-100">
-            <span className="font-semibold text-coral-500 text-sm tabular-nums">{stats.total_unanswered}</span>
+        {/* Stats — hide secondary on mobile */}
+        <div className="flex items-center gap-2 text-xs flex-1 justify-center sm:justify-start">
+          <div className="flex items-center gap-1.5 bg-stone-50 rounded-lg px-2.5 py-1.5 border border-stone-100">
+            <span className="font-semibold text-coral-500 tabular-nums">{stats.total_unanswered}</span>
             <span className="text-stone-400">waiting</span>
           </div>
 
           {stats.longest_waiting_hours > 0 && (
-            <div className="flex items-center gap-1.5 bg-stone-50 rounded-lg px-3 py-1.5 border border-stone-100">
+            <div className="hidden sm:flex items-center gap-1.5 bg-stone-50 rounded-lg px-2.5 py-1.5 border border-stone-100">
               <span className="text-stone-400">longest</span>
               <span className="font-semibold text-stone-700 tabular-nums">
                 {stats.longest_waiting_hours < 24
@@ -85,17 +85,17 @@ export function StatsBar({ onShowQR, onSynced }: Props) {
             </div>
           )}
 
-          <div className="flex items-center gap-1.5 bg-stone-50 rounded-lg px-3 py-1.5 border border-stone-100">
+          <div className="hidden sm:flex items-center gap-1.5 bg-stone-50 rounded-lg px-2.5 py-1.5 border border-stone-100">
             <span className="text-stone-400">synced</span>
             <span className="font-medium text-stone-600">{syncAgo}</span>
           </div>
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 shrink-0">
           <button
             onClick={onShowQR}
-            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all cursor-pointer hover:shadow-sm"
+            className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer hover:shadow-sm"
             style={{
               background: wahaOk ? "var(--color-sage-50)" : "var(--color-coral-50)",
               borderColor: wahaOk ? "var(--color-sage-100)" : "var(--color-coral-100)",
@@ -103,13 +103,13 @@ export function StatsBar({ onShowQR, onSynced }: Props) {
             }}
           >
             <span className={`w-1.5 h-1.5 rounded-full ${wahaOk ? "bg-sage-500" : "bg-coral-500 animate-pulse"}`} />
-            {wahaOk ? "Connected" : stats.waha_status}
+            <span className="hidden sm:inline">{wahaOk ? "Connected" : stats.waha_status}</span>
           </button>
 
           <button
             onClick={handleSync}
             disabled={syncing}
-            className="text-xs text-stone-400 hover:text-stone-600 px-2 py-1.5 rounded-lg hover:bg-stone-50 transition-all cursor-pointer disabled:opacity-50"
+            className="text-stone-400 hover:text-stone-600 p-1.5 rounded-lg hover:bg-stone-50 transition-all cursor-pointer disabled:opacity-50"
           >
             <svg className={`w-3.5 h-3.5 ${syncing ? "animate-spin" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="23 4 23 10 17 10" />
@@ -120,7 +120,7 @@ export function StatsBar({ onShowQR, onSynced }: Props) {
 
           <button
             onClick={() => { clearToken(); window.location.reload(); }}
-            className="text-xs text-stone-300 hover:text-stone-500 px-2 py-1.5 rounded-lg hover:bg-stone-50 transition-all cursor-pointer"
+            className="text-stone-300 hover:text-stone-500 p-1.5 rounded-lg hover:bg-stone-50 transition-all cursor-pointer"
           >
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
