@@ -5,10 +5,11 @@ import { formatRelativeTime, formatWaitTime, getUrgencyClasses, getUrgencyDot, f
 interface Props {
   contact: Contact;
   onClick: () => void;
+  onSkip: () => void;
   index: number;
 }
 
-export function ContactRow({ contact, onClick, index }: Props) {
+export function ContactRow({ contact, onClick, onSkip, index }: Props) {
   const [imgError, setImgError] = useState(false);
   const displayName = contact.name || `+${contact.phone}`;
   const rawPreview = contact.last_message_preview || "";
@@ -65,7 +66,7 @@ export function ContactRow({ contact, onClick, index }: Props) {
             </div>
           </div>
 
-          <div className="flex items-baseline gap-2 mt-0.5">
+          <div className="flex items-center gap-2 mt-0.5">
             <p dir="auto" className="text-[13px] text-stone-400 truncate flex-1 min-w-0 leading-relaxed">
               {mediaLabel && !rawPreview ? (
                 <span className="italic">{mediaLabel}</span>
@@ -73,9 +74,17 @@ export function ContactRow({ contact, onClick, index }: Props) {
                 preview
               )}
             </p>
-            <span className="text-[11px] text-stone-300 shrink-0">
+            <span className="text-[11px] text-stone-300 shrink-0 hidden sm:inline">
               {formatRelativeTime(contact.waiting_seconds)}
             </span>
+            {!contact.is_blocked && !contact.is_dismissed && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onSkip(); }}
+                className="text-[11px] text-stone-300 hover:text-stone-600 px-2 py-0.5 rounded-md hover:bg-stone-100 transition-all cursor-pointer shrink-0"
+              >
+                Skip
+              </button>
+            )}
           </div>
         </div>
       </div>

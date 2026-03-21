@@ -160,15 +160,55 @@ export function ContactModal({
             </p>
           </div>
 
-          {/* Actions toggle */}
-          <button
-            onClick={() => setShowActions(!showActions)}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-stone-300 hover:text-stone-500 hover:bg-stone-50 transition-all cursor-pointer shrink-0"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-              <circle cx="12" cy="5" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="19" r="1.5" />
-            </svg>
-          </button>
+          {/* Skip button — always visible */}
+          {!contact.is_blocked && !contact.is_dismissed && (
+            <button
+              onClick={onDismiss}
+              className="text-xs text-stone-400 hover:text-stone-600 px-2.5 py-1.5 rounded-lg hover:bg-stone-50 transition-all cursor-pointer shrink-0"
+            >
+              Skip
+            </button>
+          )}
+          {contact.is_dismissed && (
+            <button
+              onClick={onUndismiss}
+              className="text-xs text-sage-600 hover:text-sage-700 px-2.5 py-1.5 rounded-lg hover:bg-sage-50 transition-all cursor-pointer shrink-0"
+            >
+              Restore
+            </button>
+          )}
+          {contact.is_blocked && (
+            <button
+              onClick={onUnblock}
+              className="text-xs text-sage-600 hover:text-sage-700 px-2.5 py-1.5 rounded-lg hover:bg-sage-50 transition-all cursor-pointer shrink-0"
+            >
+              Unblock
+            </button>
+          )}
+
+          {/* More actions (block) — rare */}
+          {!contact.is_blocked && !contact.is_dismissed && (
+            <div className="relative shrink-0">
+              <button
+                onClick={() => setShowActions(!showActions)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-stone-300 hover:text-stone-500 hover:bg-stone-50 transition-all cursor-pointer"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <circle cx="12" cy="5" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="19" r="1.5" />
+                </svg>
+              </button>
+              {showActions && (
+                <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-lg border border-stone-200 py-1 z-10 animate-fade-in">
+                  <button
+                    onClick={() => { setShowActions(false); onBlock(); }}
+                    className="text-xs text-coral-500 hover:bg-coral-50 px-4 py-2 w-full text-left whitespace-nowrap cursor-pointer"
+                  >
+                    Block forever
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           <button
             onClick={onClose}
@@ -179,30 +219,6 @@ export function ContactModal({
             </svg>
           </button>
         </div>
-
-        {/* Actions dropdown */}
-        {showActions && (
-          <div className="flex items-center gap-2 px-4 sm:px-5 py-2 border-b border-stone-100 bg-stone-50/50 animate-fade-in">
-            {contact.is_blocked ? (
-              <button onClick={() => { onUnblock(); }} className="text-xs font-medium text-sage-600 bg-sage-50 hover:bg-sage-100 px-3 py-1.5 rounded-lg border border-sage-100 transition-all cursor-pointer">
-                Unblock
-              </button>
-            ) : contact.is_dismissed ? (
-              <button onClick={() => { onUndismiss(); }} className="text-xs font-medium text-sage-600 bg-sage-50 hover:bg-sage-100 px-3 py-1.5 rounded-lg border border-sage-100 transition-all cursor-pointer">
-                Restore
-              </button>
-            ) : (
-              <>
-                <button onClick={() => { onDismiss(); }} className="text-xs font-medium text-stone-500 bg-white hover:bg-stone-50 px-3 py-1.5 rounded-lg border border-stone-200 transition-all cursor-pointer">
-                  Skip
-                </button>
-                <button onClick={() => { onBlock(); }} className="text-xs font-medium text-coral-500 bg-white hover:bg-coral-50 px-3 py-1.5 rounded-lg border border-coral-100 transition-all cursor-pointer">
-                  Block forever
-                </button>
-              </>
-            )}
-          </div>
-        )}
 
         {/* Messages — scrollable */}
         <div ref={scrollRef} className="flex-1 overflow-y-auto min-h-0">

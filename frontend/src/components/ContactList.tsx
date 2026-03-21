@@ -105,6 +105,7 @@ export function ContactList({ contacts, dismissed, blocked, onRefresh }: Props) 
               key={contact.jid}
               contact={contact}
               onClick={() => openContact(contact)}
+              onSkip={() => action(() => api.dismiss(contact.jid))}
               index={i}
             />
           ))
