@@ -32,7 +32,7 @@ export function MessageThread({ messages, loading }: Props) {
   }
 
   return (
-    <div className="bg-stone-50/80 border-t border-stone-100 px-5 py-4 max-h-80 overflow-y-auto">
+    <div className="bg-stone-50/80 px-4 sm:px-5 py-4">
       <div className="space-y-2.5 max-w-lg mx-auto">
         {messages.map((msg, i) => (
           <div

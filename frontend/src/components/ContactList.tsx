@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import type { Contact } from "../types";
 import { ContactRow } from "./ContactRow";
-import { MessageThread } from "./MessageThread";
+import { ContactModal } from "./ContactModal";
 import { EmptyState } from "./EmptyState";
 import { useMessages } from "../hooks/useMessages";
 import { api } from "../api/client";
@@ -18,7 +18,7 @@ type Tab = "unanswered" | "dismissed" | "blocked";
 export function ContactList({ contacts, dismissed, blocked, onRefresh }: Props) {
   const [tab, setTab] = useState<Tab>("unanswered");
   const [search, setSearch] = useState("");
-  const [expandedJid, setExpandedJid] = useState<string | null>(null);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const { messages, loading: msgsLoading, fetchMessages, clear } = useMessages();
 
   const list = tab === "unanswered" ? contacts : tab === "dismissed" ? dismissed : blocked;
@@ -30,28 +30,28 @@ export function ContactList({ contacts, dismissed, blocked, onRefresh }: Props) 
       )
     : list;
 
-  const handleExpand = (jid: string) => {
-    if (expandedJid === jid) {
-      setExpandedJid(null);
-      clear();
-    } else {
-      clear();
-      setExpandedJid(jid);
-      fetchMessages(jid);
-    }
+  const openContact = (contact: Contact) => {
+    clear();
+    setSelectedContact(contact);
+    fetchMessages(contact.jid);
+  };
+
+  const closeModal = () => {
+    setSelectedContact(null);
+    clear();
   };
 
   const action = async (fn: () => Promise<unknown>) => {
     try {
       await fn();
-      setExpandedJid(null);
+      closeModal();
       onRefresh();
     } catch { /* will refresh on next auto-poll */ }
   };
 
   return (
     <main className="flex-1 flex flex-col max-w-3xl mx-auto w-full">
-      {/* Tab bar + Search — sticky below header */}
+      {/* Tab bar + Search */}
       <div className="sticky top-[49px] z-10 bg-stone-50/95 backdrop-blur-sm border-b border-stone-200/60">
         <div className="flex items-center gap-2 px-4 sm:px-5 py-2.5">
           <div className="flex items-center bg-stone-100 rounded-lg p-0.5 shrink-0">
@@ -101,59 +101,29 @@ export function ContactList({ contacts, dismissed, blocked, onRefresh }: Props) 
           <EmptyState tab={tab} />
         ) : (
           filtered.map((contact, i) => (
-            <div key={contact.jid}>
-              <ContactRow
-                contact={contact}
-                isExpanded={expandedJid === contact.jid}
-                onClick={() => handleExpand(contact.jid)}
-                onDismiss={() => action(() => api.dismiss(contact.jid))}
-                onBlock={() => action(() => api.block(contact.jid))}
-                onUndismiss={() => action(() => api.undismiss(contact.jid))}
-                onUnblock={() => action(() => api.unblock(contact.jid))}
-                index={i}
-              />
-              <ExpandableThread
-                isOpen={expandedJid === contact.jid}
-                messages={messages}
-                loading={msgsLoading}
-              />
-            </div>
+            <ContactRow
+              key={contact.jid}
+              contact={contact}
+              onClick={() => openContact(contact)}
+              index={i}
+            />
           ))
         )}
       </div>
+
+      {/* Contact detail modal */}
+      {selectedContact && (
+        <ContactModal
+          contact={selectedContact}
+          messages={messages}
+          loading={msgsLoading}
+          onClose={closeModal}
+          onDismiss={() => action(() => api.dismiss(selectedContact.jid))}
+          onBlock={() => action(() => api.block(selectedContact.jid))}
+          onUndismiss={() => action(() => api.undismiss(selectedContact.jid))}
+          onUnblock={() => action(() => api.unblock(selectedContact.jid))}
+        />
+      )}
     </main>
-  );
-}
-
-// Animated expand/collapse wrapper
-function ExpandableThread({
-  isOpen,
-  messages,
-  loading,
-}: {
-  isOpen: boolean;
-  messages: import("../types").Message[];
-  loading: boolean;
-}) {
-  const contentRef = useRef<HTMLDivElement>(null);
-  const [height, setHeight] = useState(0);
-
-  useEffect(() => {
-    if (isOpen && contentRef.current) {
-      setHeight(contentRef.current.scrollHeight);
-    } else {
-      setHeight(0);
-    }
-  }, [isOpen, messages, loading]);
-
-  return (
-    <div
-      className="overflow-hidden transition-all duration-300 ease-in-out"
-      style={{ maxHeight: isOpen ? `${Math.max(height, 320)}px` : "0px" }}
-    >
-      <div ref={contentRef}>
-        {isOpen && <MessageThread messages={messages} loading={loading} />}
-      </div>
-    </div>
   );
 }

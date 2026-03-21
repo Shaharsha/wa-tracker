@@ -4,25 +4,11 @@ import { formatRelativeTime, formatWaitTime, getUrgencyClasses, getUrgencyDot, f
 
 interface Props {
   contact: Contact;
-  isExpanded: boolean;
   onClick: () => void;
-  onDismiss: () => void;
-  onBlock: () => void;
-  onUndismiss: () => void;
-  onUnblock: () => void;
   index: number;
 }
 
-export function ContactRow({
-  contact,
-  isExpanded,
-  onClick,
-  onDismiss,
-  onBlock,
-  onUndismiss,
-  onUnblock,
-  index,
-}: Props) {
+export function ContactRow({ contact, onClick, index }: Props) {
   const [imgError, setImgError] = useState(false);
   const displayName = contact.name || `+${contact.phone}`;
   const rawPreview = contact.last_message_preview || "";
@@ -40,9 +26,7 @@ export function ContactRow({
       style={{ animationDelay: `${index * 40}ms` }}
       onClick={onClick}
     >
-      <div className={`flex gap-3 px-4 sm:px-5 py-3 sm:py-4 transition-colors duration-150 ${
-        isExpanded ? "bg-stone-100/60" : "hover:bg-stone-50"
-      }`}>
+      <div className="flex gap-3 px-4 sm:px-5 py-3 sm:py-4 transition-colors duration-150 hover:bg-stone-50 active:bg-stone-100/60">
         {/* Avatar */}
         {contact.profile_picture_url && !imgError ? (
           <img
@@ -62,15 +46,12 @@ export function ContactRow({
           </div>
         )}
 
-        {/* Content + Badges — stacked */}
+        {/* Content + Badges */}
         <div className="flex-1 min-w-0">
-          {/* Top line: name + badges */}
           <div className="flex items-center gap-2">
             <span className="font-medium text-stone-800 truncate text-[15px] flex-1 min-w-0">
               {displayName}
             </span>
-
-            {/* Badges — always right */}
             <div className="flex items-center gap-1.5 shrink-0">
               {contact.unanswered_count > 0 && (
                 <span className={`text-[11px] font-semibold px-1.5 py-0.5 rounded-full border ${getUrgencyClasses(contact.waiting_seconds)}`}>
@@ -84,7 +65,6 @@ export function ContactRow({
             </div>
           </div>
 
-          {/* Bottom line: preview + time */}
           <div className="flex items-baseline gap-2 mt-0.5">
             <p dir="auto" className="text-[13px] text-stone-400 truncate flex-1 min-w-0 leading-relaxed">
               {mediaLabel && !rawPreview ? (
@@ -96,40 +76,6 @@ export function ContactRow({
             <span className="text-[11px] text-stone-300 shrink-0">
               {formatRelativeTime(contact.waiting_seconds)}
             </span>
-          </div>
-
-          {/* Actions — show on hover (desktop only, on mobile tap to expand) */}
-          <div className="hidden sm:flex items-center gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-all">
-            {contact.is_blocked ? (
-              <button
-                onClick={(e) => { e.stopPropagation(); onUnblock(); }}
-                className="text-[11px] font-medium text-sage-600 bg-sage-50 hover:bg-sage-100 px-2 py-0.5 rounded-md border border-sage-100 transition-all cursor-pointer"
-              >
-                Unblock
-              </button>
-            ) : contact.is_dismissed ? (
-              <button
-                onClick={(e) => { e.stopPropagation(); onUndismiss(); }}
-                className="text-[11px] font-medium text-sage-600 bg-sage-50 hover:bg-sage-100 px-2 py-0.5 rounded-md border border-sage-100 transition-all cursor-pointer"
-              >
-                Restore
-              </button>
-            ) : (
-              <>
-                <button
-                  onClick={(e) => { e.stopPropagation(); onDismiss(); }}
-                  className="text-[11px] text-stone-300 hover:text-stone-500 px-1.5 py-0.5 rounded-md hover:bg-stone-100 transition-all cursor-pointer"
-                >
-                  Skip
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); onBlock(); }}
-                  className="text-[11px] text-stone-300 hover:text-coral-500 px-1.5 py-0.5 rounded-md hover:bg-coral-50 transition-all cursor-pointer"
-                >
-                  Block
-                </button>
-              </>
-            )}
           </div>
         </div>
       </div>
