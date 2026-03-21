@@ -9,14 +9,24 @@ interface Props {
 
 export function MessageThread({ messages, loading }: Props) {
   const endRef = useRef<HTMLDivElement>(null);
+  const prevCount = useRef(0);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messages.length > 0) {
+      // Instant scroll on first load, smooth on new messages
+      const behavior = prevCount.current === 0 ? "instant" : "smooth";
+      // Small delay to let the modal finish its animation
+      const delay = prevCount.current === 0 ? 150 : 0;
+      setTimeout(() => {
+        endRef.current?.scrollIntoView({ behavior: behavior as ScrollBehavior });
+      }, delay);
+      prevCount.current = messages.length;
+    }
   }, [messages]);
 
   if (loading) {
     return (
-      <div className="px-5 py-8 text-center">
+      <div className="px-5 py-12 text-center">
         <div className="w-5 h-5 border-2 border-stone-200 border-t-stone-400 rounded-full animate-spin mx-auto mb-2" />
         <p className="text-stone-300 text-xs">Loading messages...</p>
       </div>
@@ -25,7 +35,7 @@ export function MessageThread({ messages, loading }: Props) {
 
   if (messages.length === 0) {
     return (
-      <div className="px-5 py-8 text-center">
+      <div className="px-5 py-12 text-center">
         <p className="text-stone-300 text-xs">No messages found</p>
       </div>
     );
@@ -34,11 +44,10 @@ export function MessageThread({ messages, loading }: Props) {
   return (
     <div className="bg-stone-50/80 px-4 sm:px-5 py-4">
       <div className="space-y-2.5 max-w-lg mx-auto">
-        {messages.map((msg, i) => (
+        {messages.map((msg) => (
           <div
             key={msg.id}
-            className={`flex ${msg.from_me ? "justify-end" : "justify-start"} animate-fade-in`}
-            style={{ animationDelay: `${i * 20}ms` }}
+            className={`flex ${msg.from_me ? "justify-end" : "justify-start"}`}
           >
             <div
               className={`max-w-[80%] rounded-2xl text-[13px] leading-relaxed shadow-sm overflow-hidden ${
@@ -79,7 +88,7 @@ export function MessageThread({ messages, loading }: Props) {
                   </p>
                 ) : null}
               </div>
-              <p className={`text-[10px] mt-1 ${
+              <p className={`text-[10px] mt-1 ${msg.media_url ? "px-3.5 pb-2" : ""} ${
                 msg.from_me ? "text-stone-400" : "text-stone-300"
               }`}>
                 {formatTimestamp(msg.timestamp)}
