@@ -52,7 +52,7 @@ export function ContactList({ contacts, dismissed, blocked, onRefresh }: Props) 
   return (
     <main className="flex-1 flex flex-col max-w-3xl mx-auto w-full">
       {/* Tab bar + Search — sticky below header */}
-      <div className="sticky top-[52px] z-10 bg-stone-50/95 backdrop-blur-sm border-b border-stone-200/60">
+      <div className="sticky top-[85px] z-10 bg-stone-50/95 backdrop-blur-sm border-b border-stone-200/60">
         <div className="flex items-center gap-2 px-4 sm:px-5 py-2.5">
           <div className="flex items-center bg-stone-100 rounded-lg p-0.5 shrink-0">
             {([

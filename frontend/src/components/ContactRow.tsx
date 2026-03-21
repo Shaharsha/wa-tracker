@@ -40,7 +40,7 @@ export function ContactRow({
       style={{ animationDelay: `${index * 40}ms` }}
       onClick={onClick}
     >
-      <div className={`flex items-center gap-3 px-4 sm:px-5 py-3 sm:py-4 transition-colors duration-150 ${
+      <div className={`flex gap-3 px-4 sm:px-5 py-3 sm:py-4 transition-colors duration-150 ${
         isExpanded ? "bg-stone-100/60" : "hover:bg-stone-50"
       }`}>
         {/* Avatar */}
@@ -48,12 +48,12 @@ export function ContactRow({
           <img
             src={contact.profile_picture_url}
             alt={displayName}
-            className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl object-cover shrink-0 shadow-sm transition-transform duration-200 group-hover:scale-105"
+            className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl object-cover shrink-0 shadow-sm transition-transform duration-200 group-hover:scale-105 mt-0.5"
             onError={() => setImgError(true)}
           />
         ) : (
           <div
-            className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center text-white font-medium text-sm shrink-0 shadow-sm transition-transform duration-200 group-hover:scale-105"
+            className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center text-white font-medium text-sm shrink-0 shadow-sm transition-transform duration-200 group-hover:scale-105 mt-0.5"
             style={{
               background: `linear-gradient(135deg, hsl(${hue}, 40%, 55%), hsl(${hue + 20}, 45%, 45%))`,
             }}
@@ -62,52 +62,55 @@ export function ContactRow({
           </div>
         )}
 
-        {/* Content */}
+        {/* Content + Badges — stacked */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-baseline gap-2">
-            <span className="font-medium text-stone-800 truncate text-[15px]">
+          {/* Top line: name + badges */}
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-stone-800 truncate text-[15px] flex-1 min-w-0">
               {displayName}
             </span>
-            <span className="text-[11px] text-stone-400 shrink-0">
+
+            {/* Badges — always right */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              {contact.unanswered_count > 0 && (
+                <span className={`text-[11px] font-semibold px-1.5 py-0.5 rounded-full border ${getUrgencyClasses(contact.waiting_seconds)}`}>
+                  {contact.unanswered_count}
+                </span>
+              )}
+              <span className={`w-1.5 h-1.5 rounded-full ${getUrgencyDot(contact.waiting_seconds)}`} />
+              <span className="text-[11px] text-stone-400 tabular-nums font-medium">
+                {formatWaitTime(contact.waiting_seconds)}
+              </span>
+            </div>
+          </div>
+
+          {/* Bottom line: preview + time */}
+          <div className="flex items-baseline gap-2 mt-0.5">
+            <p className="text-[13px] text-stone-400 truncate flex-1 min-w-0 leading-relaxed">
+              {mediaLabel && !rawPreview ? (
+                <span className="italic">{mediaLabel}</span>
+              ) : (
+                preview
+              )}
+            </p>
+            <span className="text-[11px] text-stone-300 shrink-0">
               {formatRelativeTime(contact.waiting_seconds)}
             </span>
           </div>
-          <p className="text-[13px] text-stone-400 truncate mt-0.5 leading-relaxed">
-            {mediaLabel && !rawPreview ? (
-              <span className="italic">{mediaLabel}</span>
-            ) : (
-              preview
-            )}
-          </p>
-        </div>
 
-        {/* Badges + Actions */}
-        <div className="flex items-center gap-2 shrink-0 ml-auto">
-          {contact.unanswered_count > 0 && (
-            <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${getUrgencyClasses(contact.waiting_seconds)}`}>
-              {contact.unanswered_count}
-            </span>
-          )}
-          <div className="flex items-center gap-1.5">
-            <span className={`w-1.5 h-1.5 rounded-full ${getUrgencyDot(contact.waiting_seconds)}`} />
-            <span className="text-[11px] text-stone-400 tabular-nums font-medium">
-              {formatWaitTime(contact.waiting_seconds)}
-            </span>
-          </div>
-
-          {/* Actions — show on hover */}
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+          {/* Actions — show on hover (desktop only, on mobile tap to expand) */}
+          <div className="hidden sm:flex items-center gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-all">
             {contact.is_blocked ? (
               <button
                 onClick={(e) => { e.stopPropagation(); onUnblock(); }}
-                className="text-[11px] font-medium text-sage-600 bg-sage-50 hover:bg-sage-100 px-2 py-1 rounded-lg border border-sage-100 transition-all cursor-pointer"
+                className="text-[11px] font-medium text-sage-600 bg-sage-50 hover:bg-sage-100 px-2 py-0.5 rounded-md border border-sage-100 transition-all cursor-pointer"
               >
                 Unblock
               </button>
             ) : contact.is_dismissed ? (
               <button
                 onClick={(e) => { e.stopPropagation(); onUndismiss(); }}
-                className="text-[11px] font-medium text-sage-600 bg-sage-50 hover:bg-sage-100 px-2 py-1 rounded-lg border border-sage-100 transition-all cursor-pointer"
+                className="text-[11px] font-medium text-sage-600 bg-sage-50 hover:bg-sage-100 px-2 py-0.5 rounded-md border border-sage-100 transition-all cursor-pointer"
               >
                 Restore
               </button>
@@ -115,15 +118,13 @@ export function ContactRow({
               <>
                 <button
                   onClick={(e) => { e.stopPropagation(); onDismiss(); }}
-                  className="text-[11px] text-stone-300 hover:text-stone-500 px-1.5 py-1 rounded-lg hover:bg-stone-100 transition-all cursor-pointer"
-                  title="Skip for now — reappears if they message again"
+                  className="text-[11px] text-stone-300 hover:text-stone-500 px-1.5 py-0.5 rounded-md hover:bg-stone-100 transition-all cursor-pointer"
                 >
                   Skip
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); onBlock(); }}
-                  className="text-[11px] text-stone-300 hover:text-coral-500 px-1.5 py-1 rounded-lg hover:bg-coral-50 transition-all cursor-pointer"
-                  title="Block forever — never show in unanswered"
+                  className="text-[11px] text-stone-300 hover:text-coral-500 px-1.5 py-0.5 rounded-md hover:bg-coral-50 transition-all cursor-pointer"
                 >
                   Block
                 </button>
