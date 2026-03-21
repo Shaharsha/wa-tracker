@@ -153,8 +153,10 @@ async def _do_sync():
 
                     # Download + upload media to R2 (in memory, no disk)
                     media_url = None
-                    if has_media:
-                        media_result = await waha_client.download_media(msg_id)
+                    media_info = msg.get("media") or {}
+                    waha_media_url = media_info.get("url") if isinstance(media_info, dict) else None
+                    if has_media and waha_media_url:
+                        media_result = await waha_client.download_media_from_url(waha_media_url)
                         if media_result:
                             data, mimetype = media_result
                             ext = mimetype.split("/")[-1].split(";")[0]

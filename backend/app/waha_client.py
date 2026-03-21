@@ -73,20 +73,23 @@ class WAHAClient:
             logger.debug("Failed to get profile pic for %s: %s", contact_id, e)
             return None
 
-    async def download_media(self, message_id: str) -> tuple[bytes, str] | None:
-        """Download media for a message. Returns (data, mimetype) or None."""
+    async def download_media_from_url(self, url: str) -> tuple[bytes, str] | None:
+        """Download media from a WAHA file URL. Returns (data, mimetype) or None."""
         try:
+            # The URL is like http://localhost:3000/api/files/... — rewrite to use internal Docker hostname
+            internal_url = url.replace("http://localhost:3000", self._client.base_url)
             resp = await self._client.get(
-                f"/api/{self._session}/messages/{message_id}/download",
+                internal_url.removeprefix(str(self._client.base_url)),
                 timeout=60.0,
             )
             if resp.status_code == 200:
                 mimetype = resp.headers.get("content-type", "application/octet-stream")
-                logger.debug("Downloaded media for %s (%d bytes, %s)", message_id, len(resp.content), mimetype)
+                logger.debug("Downloaded media (%d bytes, %s)", len(resp.content), mimetype)
                 return resp.content, mimetype
+            logger.warning("Media download returned HTTP %s for %s", resp.status_code, url)
             return None
         except Exception as e:
-            logger.debug("Failed to download media for %s: %s", message_id, e)
+            logger.debug("Failed to download media from %s: %s", url, e)
             return None
 
     async def get_all_contacts(self) -> dict[str, str]:
@@ -138,7 +141,7 @@ class WAHAClient:
         try:
             resp = await self._client.get(
                 f"/api/{self._session}/chats/{chat_id}/messages",
-                params={"limit": limit, "downloadMedia": "false"},
+                params={"limit": limit, "downloadMedia": "true"},
             )
             resp.raise_for_status()
             msgs = resp.json()
