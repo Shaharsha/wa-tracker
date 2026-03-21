@@ -34,11 +34,7 @@ class WAHAClient:
         try:
             resp = await self._client.get(
                 f"/api/{self._session}/chats",
-                params={
-                    "limit": limit,
-                    "sortBy": "messageTimestamp",
-                    "sortOrder": "desc",
-                },
+                params={"limit": limit},
             )
             resp.raise_for_status()
             return resp.json()

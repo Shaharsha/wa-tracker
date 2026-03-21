@@ -12,6 +12,8 @@ services:
       - WAHA_PRESENCE_AUTO_ONLINE=False
       - WHATSAPP_RESTART_ALL_SESSIONS=True
       - WHATSAPP_DOWNLOAD_MEDIA=false
+      - WHATSAPP_NOWEB_STORE_ENABLED=True
+      - WHATSAPP_NOWEB_STORE_FULL_SYNC=True
       - WAHA_LOG_FORMAT=JSON
       - WAHA_LOG_LEVEL=info
       - TZ=Asia/Jerusalem
