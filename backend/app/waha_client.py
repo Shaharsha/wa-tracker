@@ -140,14 +140,6 @@ class WAHAClient:
             logger.error("Failed to get session info: %s", e)
             return None
 
-    async def _delete_session(self) -> None:
-        """Delete the session entirely (removes stored auth data)."""
-        try:
-            resp = await self._client.delete(f"/api/sessions/{self._session}")
-            logger.info("Delete session: HTTP %s", resp.status_code)
-        except Exception as e:
-            logger.warning("Delete session failed (may not exist): %s", e)
-
     async def stop_session(self) -> None:
         try:
             resp = await self._client.post(
