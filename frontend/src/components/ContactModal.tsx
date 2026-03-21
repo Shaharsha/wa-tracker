@@ -1,8 +1,10 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import type { Contact, Message } from "../types";
 import { MessageThread } from "./MessageThread";
 import { formatWaitTime, getUrgencyDot } from "../utils/time";
 import { api } from "../api/client";
+import data from "@emoji-mart/data";
+import Picker from "@emoji-mart/react";
 
 interface Props {
   contact: Contact;
@@ -31,6 +33,7 @@ export function ContactModal({
   const [reply, setReply] = useState("");
   const [sending, setSending] = useState(false);
   const [showActions, setShowActions] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const displayName = contact.name || `+${contact.phone}`;
@@ -62,15 +65,50 @@ export function ContactModal({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
       e.preventDefault();
       handleSend();
     }
   };
 
+  const insertEmoji = useCallback((emoji: { native: string }) => {
+    const el = inputRef.current;
+    if (!el) {
+      setReply((prev) => prev + emoji.native);
+      return;
+    }
+    const start = el.selectionStart ?? reply.length;
+    const end = el.selectionEnd ?? reply.length;
+    const newText = reply.slice(0, start) + emoji.native + reply.slice(end);
+    setReply(newText);
+    setShowEmojiPicker(false);
+    // Restore cursor after emoji
+    requestAnimationFrame(() => {
+      const pos = start + emoji.native.length;
+      el.focus();
+      el.setSelectionRange(pos, pos);
+    });
+  }, [reply]);
+
+  // Replace :shortcodes: with emoji characters
+  const replaceShortcodes = useCallback((text: string): string => {
+    return text.replace(/:([a-z0-9_+-]+):/g, (match, code) => {
+      // Search emoji-mart data for the shortcode
+      const emojis = (data as { emojis: Record<string, { skins: { native: string }[] }> }).emojis;
+      const emoji = emojis[code];
+      if (emoji?.skins?.[0]?.native) return emoji.skins[0].native;
+      return match; // Keep original if not found
+    });
+  }, []);
+
   // Auto-resize textarea
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setReply(e.target.value);
+    let value = e.target.value;
+    // Check if a shortcode was just completed (ends with : followed by space/enter)
+    if (value.match(/:[a-z0-9_+-]+:\s?$/)) {
+      value = replaceShortcodes(value);
+    }
+    setReply(value);
     const el = e.target;
     el.style.height = "auto";
     el.style.height = Math.min(el.scrollHeight, 120) + "px";
@@ -171,9 +209,37 @@ export function ContactModal({
           <MessageThread messages={messages} loading={loading} />
         </div>
 
+        {/* Emoji picker */}
+        {showEmojiPicker && (
+          <div className="shrink-0 border-t border-stone-100 bg-white flex justify-center py-2">
+            <Picker
+              data={data}
+              onEmojiSelect={insertEmoji}
+              theme="light"
+              previewPosition="none"
+              skinTonePosition="search"
+              perLine={8}
+              maxFrequentRows={2}
+            />
+          </div>
+        )}
+
         {/* Reply input */}
         <div className="shrink-0 border-t border-stone-100 bg-white px-3 sm:px-4 py-2.5 sm:rounded-b-2xl">
-          <div className="flex items-end gap-2">
+          <div className="flex items-end gap-1.5">
+            <button
+              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              className={`shrink-0 self-stretch px-2 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                showEmojiPicker ? "bg-stone-100 text-stone-600" : "text-stone-300 hover:text-stone-500 hover:bg-stone-50"
+              }`}
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+                <line x1="9" y1="9" x2="9.01" y2="9" strokeWidth="2.5" />
+                <line x1="15" y1="9" x2="15.01" y2="9" strokeWidth="2.5" />
+              </svg>
+            </button>
             <textarea
               ref={inputRef}
               value={reply}
@@ -182,13 +248,13 @@ export function ContactModal({
               placeholder="Reply..."
               dir="auto"
               rows={1}
-              className="flex-1 text-sm sm:text-[13px] text-stone-800 placeholder:text-stone-300 border border-stone-200 rounded-xl px-3.5 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-stone-800/10 focus:border-stone-300 transition-all leading-relaxed"
+              className="flex-1 text-base sm:text-[13px] text-stone-800 placeholder:text-stone-300 border border-stone-200 rounded-xl px-3.5 py-2.5 resize-none focus:outline-none focus:ring-2 focus:ring-stone-800/10 focus:border-stone-300 transition-all leading-relaxed"
               style={{ maxHeight: 120 }}
             />
             <button
               onClick={handleSend}
               disabled={!reply.trim() || sending}
-              className="shrink-0 w-9 h-9 rounded-xl bg-stone-800 text-white flex items-center justify-center hover:bg-stone-700 active:bg-stone-900 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-default"
+              className="shrink-0 self-stretch px-3 rounded-xl bg-stone-800 text-white flex items-center justify-center hover:bg-stone-700 active:bg-stone-900 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-default"
             >
               {sending ? (
                 <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
