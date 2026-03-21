@@ -164,13 +164,21 @@ async def _do_sync():
                                 media_url = uploaded
                                 media_count += 1
 
-                    await db.execute(
-                        """INSERT OR IGNORE INTO messages
-                           (id, chat_id, from_me, body, timestamp, message_type, media_url)
-                           VALUES (?, ?, ?, ?, ?, ?, ?)""",
-                        (msg_id, jid, 1 if msg.get("fromMe") else 0,
-                         msg.get("body", ""), msg.get("timestamp", 0), msg_type, media_url),
-                    )
+                    if existing:
+                        # Update existing message with media
+                        if media_url:
+                            await db.execute(
+                                "UPDATE messages SET media_url = ?, message_type = ? WHERE id = ?",
+                                (media_url, msg_type, msg_id),
+                            )
+                    else:
+                        await db.execute(
+                            """INSERT OR IGNORE INTO messages
+                               (id, chat_id, from_me, body, timestamp, message_type, media_url)
+                               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                            (msg_id, jid, 1 if msg.get("fromMe") else 0,
+                             msg.get("body", ""), msg.get("timestamp", 0), msg_type, media_url),
+                        )
 
                     # If this message has a reaction from us, save it as a "reply"
                     # so the contact is marked as answered
