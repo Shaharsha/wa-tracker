@@ -3,7 +3,7 @@ import { StatsBar } from "./components/StatsBar";
 import { ContactList } from "./components/ContactList";
 import { QRSetup } from "./components/QRSetup";
 import { useContacts } from "./hooks/useContacts";
-import { hasToken, setToken, api } from "./api/client";
+import { hasToken, setToken, clearToken, api } from "./api/client";
 import type { Stats } from "./types";
 
 function LoginScreen() {
@@ -104,6 +104,12 @@ function ConnectionRequired({ onConnected }: { onConnected: () => void }) {
             with your phone to begin tracking unanswered messages.
           </p>
           <QRSetup onClose={onConnected} inline />
+          <button
+            onClick={() => { clearToken(); window.location.reload(); }}
+            className="mt-8 text-xs text-stone-300 hover:text-stone-500 transition-colors cursor-pointer"
+          >
+            Logout
+          </button>
         </div>
       </div>
     </div>

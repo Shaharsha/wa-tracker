@@ -65,21 +65,20 @@ export function QRSetup({ onClose, inline = false }: Props) {
 
       {session && (
         <>
-          <div className="mb-5">
-            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${
-              session.status === "WORKING"
-                ? "bg-sage-50 text-sage-600 border border-sage-100"
-                : session.status === "SCAN_QR_CODE"
-                ? "bg-amber-50 text-amber-600 border border-amber-100"
-                : "bg-stone-100 text-stone-500 border border-stone-200"
-            }`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${
-                session.status === "WORKING" ? "bg-sage-500" :
-                session.status === "SCAN_QR_CODE" ? "bg-amber-500 animate-pulse" : "bg-stone-400"
-              }`} />
-              {session.status}
-            </span>
-          </div>
+          {["WORKING", "SCAN_QR_CODE"].includes(session.status) && (
+            <div className="mb-5">
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${
+                session.status === "WORKING"
+                  ? "bg-sage-50 text-sage-600 border border-sage-100"
+                  : "bg-amber-50 text-amber-600 border border-amber-100"
+              }`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${
+                  session.status === "WORKING" ? "bg-sage-500" : "bg-amber-500 animate-pulse"
+                }`} />
+                {session.status === "WORKING" ? "Connected" : "Waiting for scan"}
+              </span>
+            </div>
+          )}
 
           {session.status === "WORKING" && (
             <div className="py-4">
@@ -111,24 +110,10 @@ export function QRSetup({ onClose, inline = false }: Props) {
             </div>
           )}
 
-          {session.status === "STOPPED" && (
+          {!["WORKING", "SCAN_QR_CODE"].includes(session.status) && (
             <div className="py-4">
               <p className="text-sm text-stone-500 mb-5">
                 Start a session to generate a QR code for linking.
-              </p>
-              <button
-                onClick={handleStart}
-                className="bg-stone-800 text-white px-6 py-3 rounded-xl text-sm font-medium hover:bg-stone-700 transition-all cursor-pointer shadow-sm shadow-stone-800/10"
-              >
-                Start Session
-              </button>
-            </div>
-          )}
-
-          {!["WORKING", "SCAN_QR_CODE", "STOPPED"].includes(session.status) && (
-            <div className="py-4">
-              <p className="text-sm text-stone-500 mb-5">
-                Session status: {session.status}
               </p>
               <button
                 onClick={handleStart}
