@@ -3,6 +3,7 @@ export interface Contact {
   name: string | null;
   phone: string;
   is_dismissed: boolean;
+  profile_picture_url: string | null;
   last_message_preview: string;
   last_message_timestamp: number;
   last_message_from_me: boolean;

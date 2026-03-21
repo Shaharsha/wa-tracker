@@ -40,8 +40,16 @@ export function ContactRow({
         isExpanded ? "bg-stone-100/60" : "hover:bg-stone-50"
       }`}>
         {/* Avatar */}
+        {contact.profile_picture_url ? (
+          <img
+            src={contact.profile_picture_url}
+            alt={displayName}
+            className="w-11 h-11 rounded-xl object-cover shrink-0 shadow-sm transition-transform duration-200 group-hover:scale-105"
+            onError={(e) => { e.currentTarget.style.display = "none"; e.currentTarget.nextElementSibling?.classList.remove("hidden"); }}
+          />
+        ) : null}
         <div
-          className="w-11 h-11 rounded-xl flex items-center justify-center text-white font-medium text-sm shrink-0 shadow-sm transition-transform duration-200 group-hover:scale-105"
+          className={`w-11 h-11 rounded-xl flex items-center justify-center text-white font-medium text-sm shrink-0 shadow-sm transition-transform duration-200 group-hover:scale-105 ${contact.profile_picture_url ? "hidden" : ""}`}
           style={{
             background: `linear-gradient(135deg, hsl(${hue}, 40%, 55%), hsl(${hue + 20}, 45%, 45%))`,
           }}

@@ -39,21 +39,36 @@ async def poll_and_update():
         )
         known_latest = {row["chat_id"]: row["latest_ts"] for row in await cursor.fetchall()}
 
+        # Get contacts that already have profile pics (to avoid re-fetching)
+        cursor = await db.execute(
+            "SELECT jid FROM contacts WHERE profile_picture_url IS NOT NULL"
+        )
+        has_pic = {row["jid"] for row in await cursor.fetchall()}
+
         fetched_count = 0
+        pic_count = 0
         for chat in personal_chats:
             jid = chat["id"]
             # Prefer saved contact name, then chat metadata, then phone
             name = contact_names.get(jid) or chat.get("name") or chat.get("pushName") or chat.get("formattedTitle")
             phone = _extract_phone(jid)
 
+            # Fetch profile picture if we don't have one yet
+            pic_url = None
+            if jid not in has_pic:
+                pic_url = await waha_client.get_profile_picture(jid)
+                if pic_url:
+                    pic_count += 1
+
             await db.execute(
-                """INSERT INTO contacts (jid, name, phone, updated_at)
-                   VALUES (?, ?, ?, datetime('now'))
+                """INSERT INTO contacts (jid, name, phone, profile_picture_url, updated_at)
+                   VALUES (?, ?, ?, ?, datetime('now'))
                    ON CONFLICT(jid) DO UPDATE SET
                        name = COALESCE(excluded.name, contacts.name),
                        phone = excluded.phone,
+                       profile_picture_url = COALESCE(excluded.profile_picture_url, contacts.profile_picture_url),
                        updated_at = datetime('now')""",
-                (jid, name, phone),
+                (jid, name, phone, pic_url),
             )
 
             # Check if this chat has new messages based on WAHA's lastMessage timestamp
@@ -92,7 +107,7 @@ async def poll_and_update():
             (datetime.now(timezone.utc).isoformat(),),
         )
         await db.commit()
-        logger.info("Sync complete: %d chats processed, %d message fetches", len(personal_chats), fetched_count)
+        logger.info("Sync complete: %d chats, %d msg fetches, %d new pics", len(personal_chats), fetched_count, pic_count)
     except Exception:
         logger.exception("Error during sync")
     finally:

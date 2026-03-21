@@ -58,6 +58,21 @@ class WAHAClient:
             logger.error("Failed to fetch chats: %s", e)
             return []
 
+    async def get_profile_picture(self, contact_id: str) -> str | None:
+        """Get profile picture URL for a contact."""
+        try:
+            resp = await self._client.get(
+                "/api/contacts/profile-picture",
+                params={"contactId": contact_id, "session": self._session},
+            )
+            if resp.status_code == 200:
+                data = resp.json()
+                return data.get("profilePictureURL")
+            return None
+        except Exception as e:
+            logger.debug("Failed to get profile pic for %s: %s", contact_id, e)
+            return None
+
     async def get_all_contacts(self) -> dict[str, str]:
         """Fetch all contacts and return a {phone@s.whatsapp.net: name} mapping."""
         try:
