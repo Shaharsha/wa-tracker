@@ -4,6 +4,7 @@ from pathlib import Path
 
 from app.config import settings
 
+# Core tables — safe for both new and existing databases
 _SCHEMA_STATEMENTS = [
     "PRAGMA journal_mode=WAL",
     """CREATE TABLE IF NOT EXISTS contacts (
@@ -27,25 +28,29 @@ _SCHEMA_STATEMENTS = [
     )""",
     "CREATE INDEX IF NOT EXISTS idx_messages_chat_ts ON messages(chat_id, timestamp DESC)",
     "CREATE INDEX IF NOT EXISTS idx_messages_from_me ON messages(chat_id, from_me, timestamp DESC)",
-    "CREATE INDEX IF NOT EXISTS idx_contacts_blocked ON contacts(is_blocked)",
     """CREATE TABLE IF NOT EXISTS sync_state (
         key TEXT PRIMARY KEY,
         value TEXT
     )""",
-    """CREATE VIEW IF NOT EXISTS v_last_messages AS
+]
+
+# Migrations run after core tables, with errors ignored (for already-applied migrations)
+_MIGRATIONS = [
+    "ALTER TABLE contacts ADD COLUMN dismissed_until INTEGER DEFAULT 0",
+    "ALTER TABLE contacts ADD COLUMN is_blocked INTEGER DEFAULT 0",
+]
+
+# These depend on columns added by migrations, so run last
+_POST_MIGRATION = [
+    "CREATE INDEX IF NOT EXISTS idx_contacts_blocked ON contacts(is_blocked)",
+    "DROP VIEW IF EXISTS v_last_messages",
+    """CREATE VIEW v_last_messages AS
         SELECT m.* FROM messages m
         WHERE m.id = (
             SELECT id FROM messages
             WHERE chat_id = m.chat_id
             ORDER BY timestamp DESC LIMIT 1
         )""",
-]
-
-# Migration: add new columns if upgrading from old schema
-_MIGRATIONS = [
-    "ALTER TABLE contacts ADD COLUMN dismissed_until INTEGER DEFAULT 0",
-    "ALTER TABLE contacts ADD COLUMN is_blocked INTEGER DEFAULT 0",
-    "CREATE INDEX IF NOT EXISTS idx_contacts_blocked ON contacts(is_blocked)",
 ]
 
 
@@ -63,12 +68,16 @@ async def get_db():
 async def init_db():
     Path(settings.database_path).parent.mkdir(parents=True, exist_ok=True)
     async with get_db() as db:
+        # 1. Core tables
         for statement in _SCHEMA_STATEMENTS:
             await db.execute(statement)
-        # Run migrations (ignore errors for columns that already exist)
+        # 2. Migrations (ignore errors for already-applied)
         for migration in _MIGRATIONS:
             try:
                 await db.execute(migration)
             except Exception:
                 pass
+        # 3. Post-migration (indexes, views that depend on new columns)
+        for statement in _POST_MIGRATION:
+            await db.execute(statement)
         await db.commit()
