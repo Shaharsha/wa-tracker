@@ -76,12 +76,11 @@ class WAHAClient:
     async def download_media_from_url(self, url: str) -> tuple[bytes, str] | None:
         """Download media from a WAHA file URL. Returns (data, mimetype) or None."""
         try:
-            # The URL is like http://localhost:3000/api/files/... — rewrite to use internal Docker hostname
-            internal_url = url.replace("http://localhost:3000", self._client.base_url)
-            resp = await self._client.get(
-                internal_url.removeprefix(str(self._client.base_url)),
-                timeout=60.0,
-            )
+            # Extract path from the URL (e.g. http://localhost:3000/api/files/default/xxx.jpeg -> /api/files/default/xxx.jpeg)
+            from urllib.parse import urlparse
+            path = urlparse(url).path
+            logger.info("Downloading media: %s", path)
+            resp = await self._client.get(path, timeout=60.0)
             if resp.status_code == 200:
                 mimetype = resp.headers.get("content-type", "application/octet-stream")
                 logger.debug("Downloaded media (%d bytes, %s)", len(resp.content), mimetype)

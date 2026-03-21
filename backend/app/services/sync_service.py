@@ -164,6 +164,7 @@ async def _do_sync():
                     logger.info("Media check: id=%s has_media=%s waha_url=%s existing=%s",
                                 msg_id[:30], has_media, bool(waha_media_url), bool(existing))
                     if has_media and waha_media_url:
+                        logger.info("Downloading media from %s", waha_media_url)
                         media_result = await waha_client.download_media_from_url(waha_media_url)
                         if media_result:
                             data, mimetype = media_result
