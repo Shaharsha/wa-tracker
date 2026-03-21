@@ -70,7 +70,7 @@ export function MessageThread({ messages, loading }: Props) {
               )}
               <div className={msg.media_url ? "px-3.5 py-2" : ""}>
                 {msg.body ? (
-                  <p className="break-words whitespace-pre-wrap">{msg.body}</p>
+                  <p dir="auto" className="break-words whitespace-pre-wrap">{msg.body}</p>
                 ) : !msg.media_url ? (
                   <p>
                     <span className={`italic ${msg.from_me ? "text-stone-400" : "text-stone-300"}`}>

@@ -86,7 +86,7 @@ export function ContactRow({
 
           {/* Bottom line: preview + time */}
           <div className="flex items-baseline gap-2 mt-0.5">
-            <p className="text-[13px] text-stone-400 truncate flex-1 min-w-0 leading-relaxed">
+            <p dir="auto" className="text-[13px] text-stone-400 truncate flex-1 min-w-0 leading-relaxed">
               {mediaLabel && !rawPreview ? (
                 <span className="italic">{mediaLabel}</span>
               ) : (
