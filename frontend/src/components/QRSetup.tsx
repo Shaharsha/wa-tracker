@@ -10,6 +10,7 @@ const QR_TIMEOUT_MS = 120_000; // 2 minutes
 
 export function QRSetup({ onClose, inline = false }: Props) {
   const [session, setSession] = useState<WAHASession | null>(null);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [polling, setPolling] = useState(false);
@@ -19,7 +20,10 @@ export function QRSetup({ onClose, inline = false }: Props) {
 
   // Fetch session status once on mount (no polling yet)
   useEffect(() => {
-    api.getWAHASession().then(setSession).catch(() => {});
+    api.getWAHASession()
+      .then(setSession)
+      .catch(() => {})
+      .finally(() => setInitialLoading(false));
   }, []);
 
   const stopPolling = useCallback(() => {
@@ -149,7 +153,14 @@ export function QRSetup({ onClose, inline = false }: Props) {
         </div>
       )}
 
-      {!isConnected && !polling && !loading && !expired && (
+      {initialLoading && (
+        <div className="py-8">
+          <div className="w-6 h-6 border-2 border-stone-200 border-t-stone-400 rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-stone-400 text-sm">Checking status...</p>
+        </div>
+      )}
+
+      {!initialLoading && !isConnected && !polling && !loading && !expired && (
         <div className="py-4">
           <p className="text-sm text-stone-500 mb-5">
             Start a session to generate a QR code for linking.
