@@ -56,9 +56,9 @@ export function ContactList({ contacts, dismissed, blocked, onRefresh }: Props) 
         <div className="flex items-center gap-2 px-4 sm:px-5 py-2.5">
           <div className="flex items-center bg-stone-100 rounded-lg p-0.5 shrink-0">
             {([
-              { key: "unanswered" as Tab, label: "Unanswered", mobileLabel: "Inbox", count: contacts.length, accent: true },
-              { key: "dismissed" as Tab, label: "Skipped", mobileLabel: "Skipped", count: dismissed.length, accent: false },
-              { key: "blocked" as Tab, label: "Blocked", mobileLabel: "Blocked", count: blocked.length, accent: false },
+              { key: "unanswered" as Tab, label: "Unanswered", count: contacts.length, accent: true },
+              { key: "dismissed" as Tab, label: "Skipped", count: dismissed.length, accent: false },
+              { key: "blocked" as Tab, label: "Blocked", count: blocked.length, accent: false },
             ]).map((t) => (
               <button
                 key={t.key}
@@ -69,8 +69,7 @@ export function ContactList({ contacts, dismissed, blocked, onRefresh }: Props) 
                     : "text-stone-400 hover:text-stone-600"
                 }`}
               >
-                <span className="sm:hidden">{t.mobileLabel}</span>
-                <span className="hidden sm:inline">{t.label}</span>
+                {t.label}
                 {t.count > 0 && (
                   <span className={`ml-1 tabular-nums ${tab === t.key && t.accent ? "text-coral-500" : ""}`}>
                     {t.count}
