@@ -167,23 +167,49 @@ function Dashboard() {
 
 // --- Logo component ---
 function Logo({ size = "md", className = "" }: { size?: "md" | "lg"; className?: string }) {
-  const s = size === "lg" ? 56 : 32;
-  const iconS = size === "lg" ? 26 : 14;
-  const rounding = size === "lg" ? "rounded-2xl" : "rounded-lg";
+  const s = size === "lg" ? 64 : 36;
 
   return (
-    <div className={`${rounding} inline-flex items-center justify-center shadow-lg ${className}`}
-      style={{
-        width: s,
-        height: s,
-        background: "linear-gradient(135deg, #2d2b27 0%, #49463f 100%)",
-        boxShadow: "0 4px 14px rgba(45,43,39,0.2), inset 0 1px 0 rgba(255,255,255,0.06)",
-      }}>
-      <svg width={iconS} height={iconS} viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round">
-        {/* Chat bubble with clock accent */}
-        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="white" strokeWidth="1.5" />
-        <circle cx="12" cy="10" r="3.5" stroke="rgba(212,148,10,0.9)" strokeWidth="1.5" />
-        <path d="M12 8.5V10l1.2 1.2" stroke="rgba(212,148,10,0.9)" strokeWidth="1.5" />
+    <div className={`inline-block ${className}`}>
+      <svg width={s} height={s} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        {/* Background — warm rounded square with depth */}
+        <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#bg)" />
+        <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#noise)" opacity="0.03" />
+        <rect x="2.5" y="2.5" width="59" height="59" rx="15.5" stroke="white" strokeOpacity="0.08" />
+
+        {/* Chat bubble — filled, offset for depth */}
+        <path d="M18 20C18 17.79 19.79 16 22 16H42C44.21 16 46 17.79 46 20V34C46 36.21 44.21 38 42 38H28L20 44V38H22H18V20Z"
+          fill="white" fillOpacity="0.15" transform="translate(1, 1)" />
+        <path d="M18 20C18 17.79 19.79 16 22 16H42C44.21 16 46 17.79 46 20V34C46 36.21 44.21 38 42 38H28L20 44V38H22H18V20Z"
+          fill="white" />
+
+        {/* Clock face inside bubble */}
+        <circle cx="32" cy="27" r="8" stroke="#2d2b27" strokeWidth="1.8" fill="none" />
+
+        {/* Clock hands — minute hand pointing to 2, hour hand to 10 (suggesting time passing) */}
+        <line x1="32" y1="27" x2="32" y2="21" stroke="#2d2b27" strokeWidth="1.8" strokeLinecap="round" />
+        <line x1="32" y1="27" x2="36.5" y2="29.5" stroke="#d4940a" strokeWidth="2" strokeLinecap="round" />
+
+        {/* Urgency dot — the signature amber notification */}
+        <circle cx="44" cy="18" r="5" fill="#d4940a" />
+        <circle cx="44" cy="18" r="5" fill="url(#dotGlow)" />
+        <circle cx="44" cy="18" r="3" fill="#fbbf24" opacity="0.5" />
+
+        <defs>
+          <linearGradient id="bg" x1="2" y1="2" x2="62" y2="62" gradientUnits="userSpaceOnUse">
+            <stop stopColor="#3d3a35" />
+            <stop offset="0.5" stopColor="#2d2b27" />
+            <stop offset="1" stopColor="#1a1917" />
+          </linearGradient>
+          <radialGradient id="dotGlow" cx="44" cy="18" r="5" gradientUnits="userSpaceOnUse">
+            <stop stopColor="#fbbf24" />
+            <stop offset="1" stopColor="#d4940a" />
+          </radialGradient>
+          <pattern id="noise" width="4" height="4" patternUnits="userSpaceOnUse">
+            <rect width="1" height="1" fill="white" x="0" y="0" />
+            <rect width="1" height="1" fill="white" x="2" y="2" />
+          </pattern>
+        </defs>
       </svg>
     </div>
   );

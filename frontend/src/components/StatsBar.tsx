@@ -48,12 +48,18 @@ export function StatsBar({ onShowQR }: Props) {
     <header className="bg-white border-b border-stone-200/80 animate-fade-in">
       <div className="max-w-3xl mx-auto px-4 py-4 flex flex-wrap items-center gap-x-6 gap-y-2">
         {/* Title */}
-        <div className="flex items-center gap-3 mr-auto">
-          <div className="w-8 h-8 rounded-lg bg-stone-800 flex items-center justify-center shadow-sm">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-            </svg>
-          </div>
+        <div className="flex items-center gap-2.5 mr-auto">
+          <svg width="28" height="28" viewBox="0 0 64 64" fill="none">
+            <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#hbg)" />
+            <rect x="2.5" y="2.5" width="59" height="59" rx="13.5" stroke="white" strokeOpacity="0.08" />
+            <path d="M18 20C18 17.79 19.79 16 22 16H42C44.21 16 46 17.79 46 20V34C46 36.21 44.21 38 42 38H28L20 44V38H22H18V20Z" fill="white" />
+            <circle cx="32" cy="27" r="7" stroke="#2d2b27" strokeWidth="2" fill="none" />
+            <line x1="32" y1="27" x2="32" y2="22" stroke="#2d2b27" strokeWidth="2" strokeLinecap="round" />
+            <line x1="32" y1="27" x2="35.5" y2="29" stroke="#d4940a" strokeWidth="2" strokeLinecap="round" />
+            <circle cx="44" cy="18" r="4.5" fill="#d4940a" />
+            <circle cx="44" cy="18" r="2.5" fill="#fbbf24" opacity="0.5" />
+            <defs><linearGradient id="hbg" x1="2" y1="2" x2="62" y2="62"><stop stopColor="#3d3a35"/><stop offset="1" stopColor="#1a1917"/></linearGradient></defs>
+          </svg>
           <h1 className="font-serif text-xl text-stone-900">WA Tracker</h1>
         </div>
 
