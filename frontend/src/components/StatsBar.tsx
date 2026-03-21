@@ -1,9 +1,14 @@
 import { useState, useEffect } from "react";
 import { api } from "../api/client";
+import { clearToken } from "../api/client";
 import type { Stats } from "../types";
 import { formatRelativeTime } from "../utils/time";
 
-export function StatsBar() {
+interface Props {
+  onShowQR: () => void;
+}
+
+export function StatsBar({ onShowQR }: Props) {
   const [stats, setStats] = useState<Stats | null>(null);
 
   useEffect(() => {
@@ -41,7 +46,7 @@ export function StatsBar() {
         <span className="font-semibold">
           {stats.longest_waiting_hours > 0
             ? `${stats.longest_waiting_hours}h`
-            : "—"}
+            : "\u2014"}
         </span>
       </div>
       <div className="w-px h-4 bg-gray-300" />
@@ -50,7 +55,12 @@ export function StatsBar() {
         <span className="font-medium">{syncAgo}</span>
       </div>
       <div className="w-px h-4 bg-gray-300" />
-      <div className="flex items-center gap-1.5">
+      <button
+        onClick={onShowQR}
+        className={`flex items-center gap-1.5 cursor-pointer ${
+          stats.waha_status !== "WORKING" ? "animate-pulse" : ""
+        }`}
+      >
         <span className="text-gray-600">WAHA:</span>
         <span
           className={`font-medium ${
@@ -61,13 +71,24 @@ export function StatsBar() {
         >
           {stats.waha_status}
         </span>
-      </div>
-      <button
-        onClick={() => api.triggerSync().then(() => window.location.reload())}
-        className="ml-auto text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded transition-colors cursor-pointer"
-      >
-        Sync now
       </button>
+      <div className="ml-auto flex items-center gap-2">
+        <button
+          onClick={() => api.triggerSync().then(() => window.location.reload())}
+          className="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded transition-colors cursor-pointer"
+        >
+          Sync now
+        </button>
+        <button
+          onClick={() => {
+            clearToken();
+            window.location.reload();
+          }}
+          className="text-xs text-gray-400 hover:text-gray-600 px-2 py-1 rounded transition-colors cursor-pointer"
+        >
+          Logout
+        </button>
+      </div>
     </div>
   );
 }

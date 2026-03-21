@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     poll_interval_minutes: int = 15
     database_path: str = "/data/wa_tracker.db"
     auth_token: str = ""
+    dashboard_username: str = "admin"
+    dashboard_password: str = ""
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 

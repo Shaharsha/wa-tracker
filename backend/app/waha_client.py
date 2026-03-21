@@ -72,5 +72,49 @@ class WAHAClient:
             logger.error("Failed to get contact info for %s: %s", contact_id, e)
             return None
 
+    async def get_session_info(self) -> dict[str, Any] | None:
+        """Get full session info including QR code status."""
+        try:
+            resp = await self._client.get(f"/api/sessions/{self._session}")
+            resp.raise_for_status()
+            return resp.json()
+        except Exception as e:
+            logger.error("Failed to get session info: %s", e)
+            return None
+
+    async def start_session(self) -> dict[str, Any] | None:
+        """Start/create the WAHA session."""
+        try:
+            resp = await self._client.post(
+                "/api/sessions/start",
+                json={"name": self._session},
+            )
+            resp.raise_for_status()
+            return resp.json()
+        except Exception as e:
+            logger.error("Failed to start session: %s", e)
+            return None
+
+    async def get_qr_code(self) -> dict[str, Any] | None:
+        """Get QR code for session authentication."""
+        try:
+            resp = await self._client.get(
+                f"/api/{self._session}/auth/qr",
+                params={"format": "image"},
+            )
+            if resp.status_code == 200:
+                content_type = resp.headers.get("content-type", "")
+                if "image" in content_type:
+                    import base64
+                    return {
+                        "mimetype": content_type,
+                        "data": base64.b64encode(resp.content).decode(),
+                    }
+                return resp.json()
+            return None
+        except Exception as e:
+            logger.error("Failed to get QR code: %s", e)
+            return None
+
 
 waha_client = WAHAClient()

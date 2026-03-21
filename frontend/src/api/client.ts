@@ -38,7 +38,26 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   return resp.json();
 }
 
+export interface WAHASession {
+  status: string;
+  qr?: {
+    mimetype: string;
+    data: string;
+  } | null;
+}
+
 export const api = {
+  login: async (username: string, password: string): Promise<string> => {
+    const resp = await fetch(`${API_BASE}/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+    if (!resp.ok) throw new Error("Invalid credentials");
+    const data = await resp.json();
+    return data.token;
+  },
+
   getUnanswered: (includeDismissed = false) =>
     apiFetch<import("../types").Contact[]>(
       `/contacts/unanswered?include_dismissed=${includeDismissed}`
@@ -65,4 +84,9 @@ export const api = {
   getStats: () => apiFetch<import("../types").Stats>("/stats"),
 
   triggerSync: () => apiFetch("/sync", { method: "POST" }),
+
+  getWAHASession: () => apiFetch<WAHASession>("/waha/session"),
+
+  startWAHASession: () =>
+    apiFetch("/waha/start", { method: "POST" }),
 };

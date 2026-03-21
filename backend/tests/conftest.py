@@ -7,6 +7,8 @@ os.environ["DATABASE_PATH"] = os.path.join(tempfile.gettempdir(), "test_wa_track
 os.environ["WAHA_API_KEY"] = "test-key"
 os.environ["AUTH_TOKEN"] = "test-token"
 os.environ["WAHA_BASE_URL"] = "http://localhost:3000"
+os.environ["DASHBOARD_USERNAME"] = "admin"
+os.environ["DASHBOARD_PASSWORD"] = "test-password"
 
 
 @pytest.fixture(autouse=True)
