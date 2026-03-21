@@ -229,7 +229,7 @@ export function ContactModal({
           <div className="flex items-end gap-1.5">
             <button
               onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-              className={`shrink-0 self-stretch px-2 rounded-xl hidden sm:flex items-center justify-center transition-all cursor-pointer ${
+              className={`shrink-0 w-10 h-10 rounded-xl hidden sm:flex items-center justify-center transition-all cursor-pointer ${
                 showEmojiPicker ? "bg-stone-100 text-stone-600" : "text-stone-300 hover:text-stone-500 hover:bg-stone-50"
               }`}
             >
@@ -254,7 +254,7 @@ export function ContactModal({
             <button
               onClick={handleSend}
               disabled={!reply.trim() || sending}
-              className="shrink-0 self-stretch px-3 rounded-xl bg-stone-800 text-white flex items-center justify-center hover:bg-stone-700 active:bg-stone-900 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-default"
+              className="shrink-0 w-10 h-10 rounded-xl bg-stone-800 text-white flex items-center justify-center hover:bg-stone-700 active:bg-stone-900 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-default"
             >
               {sending ? (
                 <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
