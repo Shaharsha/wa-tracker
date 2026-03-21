@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { api } from "../api/client";
-import { clearToken } from "../api/client";
+import { api, clearToken } from "../api/client";
 import type { Stats } from "../types";
 import { formatRelativeTime } from "../utils/time";
 
@@ -10,6 +9,7 @@ interface Props {
 
 export function StatsBar({ onShowQR }: Props) {
   const [stats, setStats] = useState<Stats | null>(null);
+  const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -24,6 +24,16 @@ export function StatsBar({ onShowQR }: Props) {
     return () => clearInterval(interval);
   }, []);
 
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      await api.triggerSync();
+      setStats(await api.getStats());
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   if (!stats) return null;
 
   const syncAgo = stats.last_sync_at
@@ -32,63 +42,84 @@ export function StatsBar({ onShowQR }: Props) {
       )
     : "never";
 
+  const wahaOk = stats.waha_status === "WORKING";
+
   return (
-    <div className="bg-white border-b border-gray-200 px-4 py-3 flex flex-wrap items-center gap-4 text-sm">
-      <div className="flex items-center gap-1.5">
-        <span className="font-semibold text-red-600">
-          {stats.total_unanswered}
-        </span>
-        <span className="text-gray-600">unanswered</span>
+    <header className="bg-white border-b border-stone-200/80 animate-fade-in">
+      <div className="max-w-3xl mx-auto px-4 py-4 flex flex-wrap items-center gap-x-6 gap-y-2">
+        {/* Title */}
+        <div className="flex items-center gap-3 mr-auto">
+          <div className="w-8 h-8 rounded-lg bg-stone-800 flex items-center justify-center shadow-sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+          </div>
+          <h1 className="font-serif text-xl text-stone-900">WA Tracker</h1>
+        </div>
+
+        {/* Stats pills */}
+        <div className="flex items-center gap-3 text-xs">
+          <div className="flex items-center gap-1.5 bg-stone-50 rounded-lg px-3 py-1.5 border border-stone-100">
+            <span className="font-semibold text-coral-500 text-sm tabular-nums">{stats.total_unanswered}</span>
+            <span className="text-stone-400">waiting</span>
+          </div>
+
+          {stats.longest_waiting_hours > 0 && (
+            <div className="flex items-center gap-1.5 bg-stone-50 rounded-lg px-3 py-1.5 border border-stone-100">
+              <span className="text-stone-400">longest</span>
+              <span className="font-semibold text-stone-700 tabular-nums">
+                {stats.longest_waiting_hours < 24
+                  ? `${stats.longest_waiting_hours}h`
+                  : `${Math.floor(stats.longest_waiting_hours / 24)}d`}
+              </span>
+            </div>
+          )}
+
+          <div className="flex items-center gap-1.5 bg-stone-50 rounded-lg px-3 py-1.5 border border-stone-100">
+            <span className="text-stone-400">synced</span>
+            <span className="font-medium text-stone-600">{syncAgo}</span>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onShowQR}
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-all cursor-pointer hover:shadow-sm"
+            style={{
+              background: wahaOk ? "var(--color-sage-50)" : "var(--color-coral-50)",
+              borderColor: wahaOk ? "var(--color-sage-100)" : "var(--color-coral-100)",
+              color: wahaOk ? "var(--color-sage-600)" : "var(--color-coral-600)",
+            }}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${wahaOk ? "bg-sage-500" : "bg-coral-500 animate-pulse"}`} />
+            {wahaOk ? "Connected" : stats.waha_status}
+          </button>
+
+          <button
+            onClick={handleSync}
+            disabled={syncing}
+            className="text-xs text-stone-400 hover:text-stone-600 px-2 py-1.5 rounded-lg hover:bg-stone-50 transition-all cursor-pointer disabled:opacity-50"
+          >
+            <svg className={`w-3.5 h-3.5 ${syncing ? "animate-spin" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="23 4 23 10 17 10" />
+              <polyline points="1 20 1 14 7 14" />
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+            </svg>
+          </button>
+
+          <button
+            onClick={() => { clearToken(); window.location.reload(); }}
+            className="text-xs text-stone-300 hover:text-stone-500 px-2 py-1.5 rounded-lg hover:bg-stone-50 transition-all cursor-pointer"
+          >
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+          </button>
+        </div>
       </div>
-      <div className="w-px h-4 bg-gray-300" />
-      <div className="flex items-center gap-1.5">
-        <span className="text-gray-600">Longest wait:</span>
-        <span className="font-semibold">
-          {stats.longest_waiting_hours > 0
-            ? `${stats.longest_waiting_hours}h`
-            : "\u2014"}
-        </span>
-      </div>
-      <div className="w-px h-4 bg-gray-300" />
-      <div className="flex items-center gap-1.5">
-        <span className="text-gray-600">Last sync:</span>
-        <span className="font-medium">{syncAgo}</span>
-      </div>
-      <div className="w-px h-4 bg-gray-300" />
-      <button
-        onClick={onShowQR}
-        className={`flex items-center gap-1.5 cursor-pointer ${
-          stats.waha_status !== "WORKING" ? "animate-pulse" : ""
-        }`}
-      >
-        <span className="text-gray-600">WAHA:</span>
-        <span
-          className={`font-medium ${
-            stats.waha_status === "WORKING"
-              ? "text-green-600"
-              : "text-red-600"
-          }`}
-        >
-          {stats.waha_status}
-        </span>
-      </button>
-      <div className="ml-auto flex items-center gap-2">
-        <button
-          onClick={() => api.triggerSync().then(() => window.location.reload())}
-          className="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded transition-colors cursor-pointer"
-        >
-          Sync now
-        </button>
-        <button
-          onClick={() => {
-            clearToken();
-            window.location.reload();
-          }}
-          className="text-xs text-gray-400 hover:text-gray-600 px-2 py-1 rounded transition-colors cursor-pointer"
-        >
-          Logout
-        </button>
-      </div>
-    </div>
+    </header>
   );
 }

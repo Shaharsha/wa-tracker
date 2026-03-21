@@ -24,7 +24,6 @@ export function QRSetup({ onClose }: Props) {
 
   useEffect(() => {
     fetchSession();
-    // Refresh every 5 seconds to get updated QR / status
     const interval = setInterval(fetchSession, 5000);
     return () => clearInterval(interval);
   }, [fetchSession]);
@@ -33,7 +32,6 @@ export function QRSetup({ onClose }: Props) {
     setLoading(true);
     try {
       await api.startWAHASession();
-      // Wait a moment then refresh
       setTimeout(fetchSession, 2000);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to start session");
@@ -42,73 +40,96 @@ export function QRSetup({ onClose }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-lg w-96 max-w-[90vw]">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-          <h2 className="font-semibold text-gray-900">WhatsApp Connection</h2>
+    <div className="fixed inset-0 bg-stone-900/40 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in" onClick={onClose}>
+      <div
+        className="bg-white rounded-2xl shadow-xl w-96 max-w-[90vw] overflow-hidden animate-scale-in border border-stone-200/60"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-stone-100">
+          <h2 className="font-serif text-lg text-stone-800">WhatsApp Connection</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-xl cursor-pointer"
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-stone-300 hover:text-stone-500 hover:bg-stone-50 transition-all cursor-pointer"
           >
-            &times;
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
           </button>
         </div>
 
+        {/* Body */}
         <div className="p-6 text-center">
           {loading && !session && (
-            <p className="text-gray-400">Loading session status...</p>
+            <div className="py-8">
+              <div className="w-6 h-6 border-2 border-stone-200 border-t-stone-400 rounded-full animate-spin mx-auto mb-3" />
+              <p className="text-stone-400 text-sm">Checking session status...</p>
+            </div>
           )}
 
           {error && (
-            <p className="text-red-500 text-sm mb-4">{error}</p>
+            <div className="mb-4 text-sm text-coral-600 bg-coral-50 rounded-xl px-4 py-3 border border-coral-100">
+              {error}
+            </div>
           )}
 
           {session && (
             <>
-              <div className="mb-4">
-                <span
-                  className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                    session.status === "WORKING"
-                      ? "bg-green-100 text-green-800"
-                      : session.status === "SCAN_QR_CODE"
-                      ? "bg-yellow-100 text-yellow-800"
-                      : "bg-gray-100 text-gray-800"
-                  }`}
-                >
+              {/* Status badge */}
+              <div className="mb-5">
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${
+                  session.status === "WORKING"
+                    ? "bg-sage-50 text-sage-600 border border-sage-100"
+                    : session.status === "SCAN_QR_CODE"
+                    ? "bg-amber-50 text-amber-600 border border-amber-100"
+                    : "bg-stone-100 text-stone-500 border border-stone-200"
+                }`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${
+                    session.status === "WORKING" ? "bg-sage-500" :
+                    session.status === "SCAN_QR_CODE" ? "bg-amber-500 animate-pulse" : "bg-stone-400"
+                  }`} />
                   {session.status}
                 </span>
               </div>
 
               {session.status === "WORKING" && (
-                <p className="text-green-600 font-medium">
-                  WhatsApp is connected and working!
-                </p>
+                <div className="py-4">
+                  <div className="w-14 h-14 rounded-2xl bg-sage-50 flex items-center justify-center mx-auto mb-4 border border-sage-100">
+                    <svg className="w-6 h-6 text-sage-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  </div>
+                  <p className="font-medium text-stone-700">Connected</p>
+                  <p className="text-stone-400 text-sm mt-1">WhatsApp is linked and syncing.</p>
+                </div>
               )}
 
               {session.status === "SCAN_QR_CODE" && session.qr?.data && (
                 <div>
-                  <p className="text-sm text-gray-500 mb-3">
-                    Scan this QR code with WhatsApp on your phone:
+                  <p className="text-sm text-stone-500 mb-4">
+                    Scan with WhatsApp &rarr; Linked Devices &rarr; Link a Device
                   </p>
-                  <img
-                    src={`data:${session.qr.mimetype};base64,${session.qr.data}`}
-                    alt="WhatsApp QR Code"
-                    className="mx-auto w-64 h-64"
-                  />
-                  <p className="text-xs text-gray-400 mt-3">
-                    QR code refreshes automatically every 5 seconds.
+                  <div className="inline-block p-3 bg-white rounded-2xl border border-stone-200 shadow-sm">
+                    <img
+                      src={`data:${session.qr.mimetype};base64,${session.qr.data}`}
+                      alt="WhatsApp QR Code"
+                      className="w-56 h-56"
+                    />
+                  </div>
+                  <p className="text-[11px] text-stone-300 mt-4">
+                    Refreshes automatically every 5 seconds.
                   </p>
                 </div>
               )}
 
               {session.status === "STOPPED" && (
-                <div>
-                  <p className="text-sm text-gray-500 mb-4">
+                <div className="py-4">
+                  <p className="text-sm text-stone-500 mb-5">
                     Session is stopped. Start it to generate a QR code.
                   </p>
                   <button
                     onClick={handleStart}
-                    className="bg-gray-900 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-800 transition-colors cursor-pointer"
+                    className="bg-stone-800 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-stone-700 transition-all cursor-pointer shadow-sm shadow-stone-800/10"
                   >
                     Start Session
                   </button>
@@ -116,13 +137,13 @@ export function QRSetup({ onClose }: Props) {
               )}
 
               {!["WORKING", "SCAN_QR_CODE", "STOPPED"].includes(session.status) && (
-                <div>
-                  <p className="text-sm text-gray-500 mb-4">
-                    Session status: {session.status}. Try starting a new session.
+                <div className="py-4">
+                  <p className="text-sm text-stone-500 mb-5">
+                    Session status: {session.status}
                   </p>
                   <button
                     onClick={handleStart}
-                    className="bg-gray-900 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-800 transition-colors cursor-pointer"
+                    className="bg-stone-800 text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-stone-700 transition-all cursor-pointer shadow-sm shadow-stone-800/10"
                   >
                     Start Session
                   </button>

@@ -1,6 +1,91 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Instrument+Serif:ital@0;1&display=swap');
+
+@theme {
+  --font-sans: 'DM Sans', sans-serif;
+  --font-serif: 'Instrument Serif', serif;
+  --color-stone-50: #faf9f7;
+  --color-stone-100: #f3f1ed;
+  --color-stone-200: #e7e4dd;
+  --color-stone-300: #d4d0c7;
+  --color-stone-400: #a9a498;
+  --color-stone-500: #827d72;
+  --color-stone-600: #615d54;
+  --color-stone-700: #49463f;
+  --color-stone-800: #2d2b27;
+  --color-stone-900: #1a1917;
+  --color-amber-50: #fff9eb;
+  --color-amber-100: #ffefc2;
+  --color-amber-500: #d4940a;
+  --color-amber-600: #b17a08;
+  --color-coral-50: #fff1ef;
+  --color-coral-100: #ffd9d4;
+  --color-coral-500: #e05a42;
+  --color-coral-600: #c4432d;
+  --color-sage-50: #f0f4ed;
+  --color-sage-100: #d8e3d0;
+  --color-sage-500: #5b7a4a;
+  --color-sage-600: #476137;
+}
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: 'DM Sans', sans-serif;
   margin: 0;
+  background: var(--color-stone-50);
+  color: var(--color-stone-800);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: var(--color-amber-100);
+  color: var(--color-stone-900);
+}
+
+/* Smooth scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-stone-300);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-stone-400);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out both;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out both;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s ease-out both;
 }

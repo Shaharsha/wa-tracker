@@ -18,12 +18,42 @@ export function formatWaitTime(seconds: number): string {
   return `${days}d`;
 }
 
-export function getUrgencyColor(seconds: number): string {
+export type UrgencyLevel = "fresh" | "warm" | "hot" | "critical";
+
+export function getUrgencyLevel(seconds: number): UrgencyLevel {
   const hours = seconds / 3600;
-  if (hours < 1) return "bg-green-100 text-green-800";
-  if (hours < 4) return "bg-yellow-100 text-yellow-800";
-  if (hours < 24) return "bg-orange-100 text-orange-800";
-  return "bg-red-100 text-red-800";
+  if (hours < 1) return "fresh";
+  if (hours < 4) return "warm";
+  if (hours < 24) return "hot";
+  return "critical";
+}
+
+export function getUrgencyClasses(seconds: number): string {
+  const level = getUrgencyLevel(seconds);
+  switch (level) {
+    case "fresh":
+      return "bg-sage-50 text-sage-600 border-sage-100";
+    case "warm":
+      return "bg-amber-50 text-amber-600 border-amber-100";
+    case "hot":
+      return "bg-coral-50 text-coral-600 border-coral-100";
+    case "critical":
+      return "bg-coral-100 text-coral-600 border-coral-500";
+  }
+}
+
+export function getUrgencyDot(seconds: number): string {
+  const level = getUrgencyLevel(seconds);
+  switch (level) {
+    case "fresh":
+      return "bg-sage-500";
+    case "warm":
+      return "bg-amber-500";
+    case "hot":
+      return "bg-coral-500";
+    case "critical":
+      return "bg-coral-600";
+  }
 }
 
 export function formatTimestamp(ts: number): string {

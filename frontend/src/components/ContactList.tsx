@@ -39,53 +39,76 @@ export function ContactList({ contacts, dismissed, onRefresh }: Props) {
 
   const handleDismiss = async (jid: string) => {
     await api.dismiss(jid);
+    setExpandedJid(null);
     onRefresh();
   };
 
   const handleUndismiss = async (jid: string) => {
     await api.undismiss(jid);
+    setExpandedJid(null);
     onRefresh();
   };
 
   return (
-    <div className="flex-1 flex flex-col">
-      {/* Tabs + Search */}
-      <div className="flex items-center gap-2 px-4 py-2 border-b border-gray-200 bg-white sticky top-0 z-10">
-        <button
-          onClick={() => setTab("unanswered")}
-          className={`px-3 py-1.5 text-sm rounded-md transition-colors cursor-pointer ${
-            tab === "unanswered"
-              ? "bg-gray-900 text-white"
-              : "text-gray-600 hover:bg-gray-100"
-          }`}
-        >
-          Unanswered ({contacts.length})
-        </button>
-        <button
-          onClick={() => setTab("dismissed")}
-          className={`px-3 py-1.5 text-sm rounded-md transition-colors cursor-pointer ${
-            tab === "dismissed"
-              ? "bg-gray-900 text-white"
-              : "text-gray-600 hover:bg-gray-100"
-          }`}
-        >
-          Dismissed ({dismissed.length})
-        </button>
-        <input
-          type="text"
-          placeholder="Search contacts..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="ml-auto text-sm border border-gray-200 rounded-md px-3 py-1.5 w-48 focus:outline-none focus:ring-2 focus:ring-gray-300"
-        />
+    <main className="flex-1 flex flex-col max-w-3xl mx-auto w-full">
+      {/* Tab bar + Search */}
+      <div className="sticky top-0 z-10 bg-stone-50/95 backdrop-blur-sm border-b border-stone-200/60">
+        <div className="flex items-center gap-3 px-5 py-3">
+          {/* Tabs */}
+          <div className="flex items-center bg-stone-100 rounded-lg p-0.5">
+            <button
+              onClick={() => setTab("unanswered")}
+              className={`px-3.5 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer ${
+                tab === "unanswered"
+                  ? "bg-white text-stone-800 shadow-sm"
+                  : "text-stone-400 hover:text-stone-600"
+              }`}
+            >
+              Unanswered
+              {contacts.length > 0 && (
+                <span className={`ml-1.5 tabular-nums ${tab === "unanswered" ? "text-coral-500" : ""}`}>
+                  {contacts.length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setTab("dismissed")}
+              className={`px-3.5 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer ${
+                tab === "dismissed"
+                  ? "bg-white text-stone-800 shadow-sm"
+                  : "text-stone-400 hover:text-stone-600"
+              }`}
+            >
+              Dismissed
+              {dismissed.length > 0 && (
+                <span className="ml-1.5 tabular-nums">{dismissed.length}</span>
+              )}
+            </button>
+          </div>
+
+          {/* Search */}
+          <div className="ml-auto relative">
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search\u2026"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="text-xs border border-stone-200 rounded-lg pl-8 pr-3 py-2 w-44 bg-white text-stone-700 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-stone-800/10 focus:border-stone-300 transition-all"
+            />
+          </div>
+        </div>
       </div>
 
       {/* Contact list */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 bg-white rounded-b-2xl overflow-hidden">
         {filtered.length === 0 ? (
-          <EmptyState />
+          <EmptyState tab={tab} />
         ) : (
-          filtered.map((contact) => (
+          filtered.map((contact, i) => (
             <div key={contact.jid}>
               <ContactRow
                 contact={contact}
@@ -93,14 +116,17 @@ export function ContactList({ contacts, dismissed, onRefresh }: Props) {
                 onClick={() => handleExpand(contact.jid)}
                 onDismiss={() => handleDismiss(contact.jid)}
                 onUndismiss={() => handleUndismiss(contact.jid)}
+                index={i}
               />
               {expandedJid === contact.jid && (
-                <MessageThread messages={messages} loading={msgsLoading} />
+                <div className="animate-fade-in">
+                  <MessageThread messages={messages} loading={msgsLoading} />
+                </div>
               )}
             </div>
           ))
         )}
       </div>
-    </div>
+    </main>
   );
 }
