@@ -1,0 +1,57 @@
+services:
+  waha:
+    image: devlikeapro/waha:latest
+    restart: unless-stopped
+    environment:
+      - WHATSAPP_API_PORT=3000
+      - WAHA_API_KEY=${WAHA_API_KEY}
+      - WAHA_DASHBOARD_ENABLED=true
+      - WAHA_DASHBOARD_USERNAME=${WAHA_DASHBOARD_USER:-admin}
+      - WAHA_DASHBOARD_PASSWORD=${WAHA_DASHBOARD_PASS}
+      - WHATSAPP_DEFAULT_ENGINE=NOWEB
+      - WAHA_PRESENCE_AUTO_ONLINE=False
+      - WHATSAPP_RESTART_ALL_SESSIONS=True
+      - WHATSAPP_DOWNLOAD_MEDIA=false
+      - WAHA_LOG_FORMAT=JSON
+      - WAHA_LOG_LEVEL=info
+      - TZ=Asia/Jerusalem
+    volumes:
+      - waha_sessions:/app/.sessions
+    ports:
+      - "127.0.0.1:3000:3000"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      - WAHA_BASE_URL=http://waha:3000
+      - WAHA_API_KEY=${WAHA_API_KEY}
+      - WAHA_SESSION_NAME=default
+      - POLL_INTERVAL_MINUTES=15
+      - DATABASE_PATH=/data/wa_tracker.db
+      - AUTH_TOKEN=${DASHBOARD_AUTH_TOKEN}
+      - TZ=Asia/Jerusalem
+    volumes:
+      - app_data:/data
+    ports:
+      - "127.0.0.1:8500:8000"
+    depends_on:
+      waha:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  waha_sessions:
+  app_data:
