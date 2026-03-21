@@ -60,18 +60,6 @@ class WAHAClient:
             logger.error("Failed to fetch messages for %s: %s", chat_id, e)
             return []
 
-    async def get_contact_info(self, contact_id: str) -> dict[str, Any] | None:
-        try:
-            resp = await self._client.get(
-                "/api/contacts",
-                params={"contactId": contact_id, "session": self._session},
-            )
-            resp.raise_for_status()
-            return resp.json()
-        except Exception as e:
-            logger.error("Failed to get contact info for %s: %s", contact_id, e)
-            return None
-
     async def get_session_info(self) -> dict[str, Any] | None:
         """Get full session info including QR code status."""
         try:

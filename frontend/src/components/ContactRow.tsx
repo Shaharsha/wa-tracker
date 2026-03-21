@@ -20,10 +20,10 @@ export function ContactRow({
   index,
 }: Props) {
   const displayName = contact.name || `+${contact.phone}`;
-  const preview =
-    contact.last_message_preview.length > 90
-      ? contact.last_message_preview.slice(0, 90) + "\u2026"
-      : contact.last_message_preview;
+  const rawPreview = contact.last_message_preview || "";
+  const preview = rawPreview.length > 90
+    ? rawPreview.slice(0, 90) + "\u2026"
+    : rawPreview;
 
   const initial = (contact.name || contact.phone)[0]?.toUpperCase() || "?";
 

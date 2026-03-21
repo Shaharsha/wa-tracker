@@ -1,3 +1,5 @@
+import asyncio
+import hmac
 import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -17,15 +19,22 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(name)s: %(message)s",
 )
+logger = logging.getLogger(__name__)
 
 STATIC_DIR = Path(__file__).parent / "static"
+STATIC_DIR_RESOLVED = STATIC_DIR.resolve()
 
 # Endpoints that don't require auth
 PUBLIC_PATHS = {"/api/health", "/api/login"}
 
+# Guard against concurrent syncs
+_sync_lock = asyncio.Lock()
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    if not settings.auth_token:
+        logger.warning("AUTH_TOKEN is not set — all API endpoints are unprotected!")
     await init_db()
     start_scheduler()
     yield
@@ -38,12 +47,12 @@ app = FastAPI(title="WA Tracker", lifespan=lifespan)
 
 @app.middleware("http")
 async def auth_middleware(request: Request, call_next):
-    path = request.url.path
+    path = request.url.path.rstrip("/")
     if path.startswith("/api/") and path not in PUBLIC_PATHS:
         if settings.auth_token:
             auth_header = request.headers.get("Authorization", "")
             token = auth_header.removeprefix("Bearer ").strip()
-            if token != settings.auth_token:
+            if not hmac.compare_digest(token, settings.auth_token):
                 return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
     return await call_next(request)
 
@@ -55,7 +64,9 @@ class LoginRequest(BaseModel):
 
 @app.post("/api/login")
 async def login(req: LoginRequest):
-    if req.username == settings.dashboard_username and req.password == settings.dashboard_password:
+    user_ok = hmac.compare_digest(req.username, settings.dashboard_username)
+    pass_ok = hmac.compare_digest(req.password, settings.dashboard_password)
+    if user_ok and pass_ok:
         return {"token": settings.auth_token}
     raise HTTPException(status_code=401, detail="Invalid credentials")
 
@@ -67,7 +78,10 @@ app.include_router(stats.router)
 
 @app.post("/api/sync")
 async def manual_sync():
-    await poll_and_update()
+    if _sync_lock.locked():
+        return {"status": "sync_already_running"}
+    async with _sync_lock:
+        await poll_and_update()
     return {"status": "sync_complete"}
 
 
@@ -100,7 +114,10 @@ async def spa_fallback(full_path: str):
     if full_path.startswith("api/"):
         raise HTTPException(status_code=404, detail="Not found")
     if STATIC_DIR.exists():
-        candidate = STATIC_DIR / full_path
+        candidate = (STATIC_DIR / full_path).resolve()
+        # Prevent path traversal
+        if not str(candidate).startswith(str(STATIC_DIR_RESOLVED)):
+            raise HTTPException(status_code=403, detail="Forbidden")
         if full_path and candidate.is_file():
             return FileResponse(candidate)
         idx = STATIC_DIR / "index.html"

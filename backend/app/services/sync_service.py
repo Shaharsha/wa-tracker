@@ -27,8 +27,9 @@ async def poll_and_update():
     personal_chats = [c for c in chats if _is_personal_chat(c.get("id", ""))]
     logger.info("Found %d personal chats out of %d total", len(personal_chats), len(chats))
 
-    db = await get_db()
+    db = None
     try:
+        db = await get_db()
         for chat in personal_chats:
             jid = chat["id"]
             name = chat.get("name") or chat.get("pushName") or chat.get("formattedTitle")
@@ -44,7 +45,12 @@ async def poll_and_update():
                 (jid, name, phone),
             )
 
-            messages = await waha_client.get_messages(jid, limit=30)
+            try:
+                messages = await waha_client.get_messages(jid, limit=30)
+            except Exception:
+                logger.warning("Failed to fetch messages for %s, skipping", jid)
+                continue
+
             for msg in messages:
                 msg_id = msg.get("id")
                 if not msg_id:
@@ -72,4 +78,5 @@ async def poll_and_update():
     except Exception:
         logger.exception("Error during sync")
     finally:
-        await db.close()
+        if db:
+            await db.close()
