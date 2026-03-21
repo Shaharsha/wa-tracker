@@ -58,6 +58,30 @@ class WAHAClient:
             logger.error("Failed to fetch chats: %s", e)
             return []
 
+    async def get_all_contacts(self) -> dict[str, str]:
+        """Fetch all contacts and return a {phone@s.whatsapp.net: name} mapping."""
+        try:
+            resp = await self._client.get(
+                "/api/contacts/all",
+                params={"session": self._session, "limit": 10000},
+            )
+            resp.raise_for_status()
+            contacts = resp.json()
+            # Build mapping: contacts use @c.us IDs, chats use @s.whatsapp.net
+            mapping: dict[str, str] = {}
+            for c in contacts:
+                name = c.get("name") or c.get("pushName") or c.get("verifiedName")
+                if name:
+                    cid = c.get("id", "")
+                    phone = cid.split("@")[0]
+                    mapping[f"{phone}@s.whatsapp.net"] = name
+                    mapping[f"{phone}@c.us"] = name
+            logger.info("Fetched %d contacts with names from WAHA", len(mapping) // 2)
+            return mapping
+        except Exception as e:
+            logger.error("Failed to fetch contacts: %s", e)
+            return {}
+
     async def get_messages(
         self, chat_id: str, limit: int = 30
     ) -> list[dict[str, Any]]:

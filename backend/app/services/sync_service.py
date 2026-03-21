@@ -23,7 +23,8 @@ async def poll_and_update():
         logger.warning("WAHA session not working (status=%s), skipping sync", status)
         return
 
-    # Only fetch 50 most recent chats — reduces API calls to WAHA
+    # Fetch contacts (for saved names) and chats in sequence
+    contact_names = await waha_client.get_all_contacts()
     chats = await waha_client.get_chats(limit=50)
     personal_chats = [c for c in chats if _is_personal_chat(c.get("id", ""))]
     logger.info("Found %d personal chats out of %d total", len(personal_chats), len(chats))
@@ -41,7 +42,8 @@ async def poll_and_update():
         fetched_count = 0
         for chat in personal_chats:
             jid = chat["id"]
-            name = chat.get("name") or chat.get("pushName") or chat.get("formattedTitle")
+            # Prefer saved contact name, then chat metadata, then phone
+            name = contact_names.get(jid) or chat.get("name") or chat.get("pushName") or chat.get("formattedTitle")
             phone = _extract_phone(jid)
 
             await db.execute(
