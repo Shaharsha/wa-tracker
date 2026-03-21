@@ -5,24 +5,33 @@ on:
     branches: [main]
 
 jobs:
-  test:
+  test-backend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - run: pip install uv
+      - run: cd backend && uv sync --frozen
+      - run: cd backend && uv run pytest tests/ -x -n auto
+
+  test-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
-      - run: pip install uv && cd backend && uv sync --frozen
-      - run: cd backend && uv run pytest tests/ -x
-      - run: cd frontend && npm ci && npx tsc --noEmit && npm run build
+      - run: cd frontend && npm ci
+      - run: cd frontend && npx tsc --noEmit
+      - run: cd frontend && npm test
+      - run: cd frontend && npm run build
 
   deploy:
-    needs: test
+    needs: [test-backend, test-frontend]
     runs-on: ubuntu-latest
     concurrency:
       group: deploy
