@@ -28,6 +28,8 @@ STATIC_DIR = Path(__file__).parent / "static"
 STATIC_DIR_RESOLVED = STATIC_DIR.resolve()
 
 PUBLIC_PATHS = {"/api/health", "/api/login"}
+# Paths that use query-param auth instead of header auth
+MEDIA_PREFIX = "/api/media/"
 
 # Rate limiter for login: {ip: [(timestamp, ...)])}
 _login_attempts: dict[str, list[float]] = defaultdict(list)
@@ -90,8 +92,12 @@ async def security_headers(request: Request, call_next):
 async def auth_middleware(request: Request, call_next):
     path = request.url.path.rstrip("/")
     if path.startswith("/api/") and path not in PUBLIC_PATHS:
-        auth_header = request.headers.get("Authorization", "")
-        token = auth_header.removeprefix("Bearer ").strip()
+        # Media endpoints accept token as query param (for <img> tags)
+        if path.startswith(MEDIA_PREFIX):
+            token = request.query_params.get("token", "")
+        else:
+            auth_header = request.headers.get("Authorization", "")
+            token = auth_header.removeprefix("Bearer ").strip()
         if not hmac.compare_digest(token, settings.auth_token):
             return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
     return await call_next(request)
@@ -158,7 +164,7 @@ async def waha_start_session():
 @app.get("/api/media/{path:path}")
 async def media_proxy(path: str):
     # Validate path format to prevent enumeration
-    if not re.match(r'^[\d]+/[\w.-]+$', path):
+    if not re.match(r'^[\d]+/[\w.@%-]+$', path):
         raise HTTPException(status_code=400, detail="Invalid media path")
     result = get_from_r2(path)
     if not result:

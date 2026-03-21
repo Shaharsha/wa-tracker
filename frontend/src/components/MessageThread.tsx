@@ -2,6 +2,11 @@ import { useEffect, useRef } from "react";
 import type { Message } from "../types";
 import { formatTimestamp, formatMediaType } from "../utils/time";
 
+function mediaUrl(path: string): string {
+  const token = localStorage.getItem("wa_tracker_token") || "";
+  return `/api/media/${path}?token=${encodeURIComponent(token)}`;
+}
+
 interface Props {
   messages: Message[];
   loading: boolean;
@@ -58,7 +63,7 @@ export function MessageThread({ messages, loading }: Props) {
             >
               {msg.media_url && ["image", "sticker"].includes(msg.message_type) && (
                 <img
-                  src={`/api/media/${msg.media_url}`}
+                  src={mediaUrl(msg.media_url!)}
                   alt=""
                   className="max-w-full max-h-64 object-contain"
                   loading="lazy"
@@ -66,7 +71,7 @@ export function MessageThread({ messages, loading }: Props) {
               )}
               {msg.media_url && msg.message_type === "video" && (
                 <video
-                  src={`/api/media/${msg.media_url}`}
+                  src={mediaUrl(msg.media_url!)}
                   controls
                   className="max-w-full max-h-64"
                   preload="metadata"
@@ -74,7 +79,7 @@ export function MessageThread({ messages, loading }: Props) {
               )}
               {msg.media_url && ["audio", "ptt"].includes(msg.message_type) && (
                 <div className="px-3.5 py-2.5">
-                  <audio src={`/api/media/${msg.media_url}`} controls className="w-full h-8" preload="metadata" />
+                  <audio src={mediaUrl(msg.media_url!)} controls className="w-full h-8" preload="metadata" />
                 </div>
               )}
               <div className={msg.media_url ? "px-3.5 py-2" : ""}>
