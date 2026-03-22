@@ -153,6 +153,12 @@ async def waha_session():
     return result
 
 
+@app.post("/api/waha/stop")
+async def waha_stop_session():
+    await waha_client.stop_session()
+    return {"status": "stopped"}
+
+
 @app.post("/api/waha/start")
 async def waha_start_session():
     result = await waha_client.start_session()

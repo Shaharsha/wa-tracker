@@ -105,6 +105,28 @@ export function QRSetup({ onClose, inline = false }: Props) {
           </div>
           <p className="font-medium text-stone-700">Connected</p>
           <p className="text-stone-400 text-sm mt-1">WhatsApp is linked and syncing.</p>
+          <div className="flex items-center justify-center gap-2 mt-5">
+            <button
+              onClick={handleStart}
+              disabled={loading}
+              className="text-xs text-stone-400 hover:text-stone-600 bg-stone-50 hover:bg-stone-100 px-4 py-2 rounded-lg border border-stone-200 transition-all cursor-pointer disabled:opacity-50"
+            >
+              {loading ? "Restarting..." : "Restart session"}
+            </button>
+            <button
+              onClick={async () => {
+                setLoading(true);
+                try {
+                  await api.stopWAHASession();
+                  await fetchSession();
+                } finally { setLoading(false); }
+              }}
+              disabled={loading}
+              className="text-xs text-coral-400 hover:text-coral-600 bg-coral-50 hover:bg-coral-100 px-4 py-2 rounded-lg border border-coral-100 transition-all cursor-pointer disabled:opacity-50"
+            >
+              Disconnect
+            </button>
+          </div>
         </div>
       )}
 

@@ -162,6 +162,17 @@ class WAHAClient:
             logger.error("Failed to get session info: %s", e)
             return None
 
+    async def set_presence_offline(self) -> None:
+        """Set presence to offline so phone receives notifications."""
+        try:
+            await self._client.post(
+                f"/api/{self._session}/presence",
+                json={"presence": "offline"},
+            )
+            logger.info("Presence set to offline")
+        except Exception as e:
+            logger.warning("Failed to set presence offline: %s", e)
+
     async def stop_session(self) -> None:
         try:
             resp = await self._client.post(

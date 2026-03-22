@@ -214,3 +214,6 @@ async def _do_sync():
         await db.commit()
         logger.info("Sync complete: %d chats, %d msg fetches, %d new pics, %d media uploaded",
                      len(personal_chats), fetched_count, len(pic_map), media_count)
+
+    # Always set presence to offline after sync so phone gets notifications
+    await waha_client.set_presence_offline()

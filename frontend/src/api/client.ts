@@ -109,4 +109,7 @@ export const api = {
 
   startWAHASession: () =>
     apiFetch("/waha/start", { method: "POST" }),
+
+  stopWAHASession: () =>
+    apiFetch("/waha/stop", { method: "POST" }),
 };
