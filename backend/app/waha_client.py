@@ -14,7 +14,8 @@ _SESSION_CONFIG = {
         "store": {
             "enabled": True,
             "fullSync": True,
-        }
+        },
+        "markOnline": False,
     }
 }
 
