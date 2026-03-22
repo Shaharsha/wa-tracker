@@ -2,8 +2,6 @@
 
 Self-hosted dashboard that tracks unanswered WhatsApp messages, so you never forget to reply.
 
-**Live at** [your-domain.com](https://your-domain.com)
-
 ## What it does
 
 - Connects to your personal WhatsApp via [WAHA](https://waha.devlike.pro)
