@@ -141,7 +141,7 @@ class WAHAClient:
         try:
             resp = await self._client.get(
                 f"/api/{self._session}/chats/{chat_id}/messages",
-                params={"limit": limit, "downloadMedia": "true"},
+                params={"limit": limit, "downloadMedia": str(bool(settings.r2_endpoint)).lower()},
             )
             resp.raise_for_status()
             msgs = resp.json()

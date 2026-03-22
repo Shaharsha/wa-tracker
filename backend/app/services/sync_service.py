@@ -2,6 +2,7 @@ import asyncio
 import logging
 from datetime import datetime, timezone
 
+from app.config import settings
 from app.database import get_db
 from app.waha_client import waha_client
 from app.services.media import upload_to_r2
@@ -158,10 +159,11 @@ async def _do_sync():
                             continue
 
                     # Download + upload media to R2 (in memory, no disk)
+                    # Skip entirely if R2 is not configured
                     media_url = None
                     media_info = msg.get("media") or {}
                     waha_media_url = media_info.get("url") if isinstance(media_info, dict) else None
-                    if has_media and waha_media_url:
+                    if has_media and waha_media_url and settings.r2_endpoint:
                         logger.info("Downloading media from %s", waha_media_url)
                         media_result = await waha_client.download_media_from_url(waha_media_url)
                         if media_result:
