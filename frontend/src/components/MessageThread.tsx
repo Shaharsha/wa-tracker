@@ -13,17 +13,34 @@ interface Props {
 }
 
 export function MessageThread({ messages, loading }: Props) {
-  const endRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const prevCount = useRef(0);
   const [expandedImage, setExpandedImage] = useState<string | null>(null);
 
   useEffect(() => {
     if (messages.length > 0) {
-      const behavior = prevCount.current === 0 ? "instant" : "smooth";
-      const delay = prevCount.current === 0 ? 150 : 0;
-      setTimeout(() => {
-        endRef.current?.scrollIntoView({ behavior: behavior as ScrollBehavior });
-      }, delay);
+      const scrollToBottom = () => {
+        const el = containerRef.current;
+        if (!el) return;
+        // Find the scrollable parent (the modal's overflow-y-auto div)
+        const scrollParent = el.closest("[class*='overflow-y']") || el.parentElement;
+        if (scrollParent) {
+          scrollParent.scrollTop = scrollParent.scrollHeight;
+        }
+      };
+
+      if (prevCount.current === 0) {
+        // First load — try multiple times to handle layout/animation timing
+        scrollToBottom();
+        setTimeout(scrollToBottom, 100);
+        setTimeout(scrollToBottom, 300);
+      } else {
+        // New message added — smooth scroll
+        const scrollParent = containerRef.current?.closest("[class*='overflow-y']");
+        if (scrollParent) {
+          scrollParent.scrollTo({ top: scrollParent.scrollHeight, behavior: "smooth" });
+        }
+      }
       prevCount.current = messages.length;
     }
   }, [messages]);
@@ -47,7 +64,7 @@ export function MessageThread({ messages, loading }: Props) {
 
   return (
     <>
-      <div className="bg-stone-50/80 px-4 sm:px-5 py-4">
+      <div ref={containerRef} className="bg-stone-50/80 px-4 sm:px-5 py-4">
         <div className="space-y-2.5 max-w-lg mx-auto">
           {messages.map((msg) => (
             <div
@@ -102,7 +119,6 @@ export function MessageThread({ messages, loading }: Props) {
               </div>
             </div>
           ))}
-          <div ref={endRef} />
         </div>
       </div>
 
