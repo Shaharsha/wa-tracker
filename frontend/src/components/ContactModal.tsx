@@ -116,11 +116,11 @@ export function ContactModal({
 
   return (
     <div
-      className="fixed inset-0 bg-stone-900/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center animate-fade-in"
+      className="fixed inset-0 bg-stone-900/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center animate-fade-in overscroll-contain"
       onClick={onClose}
     >
       <div
-        className="bg-white w-full sm:w-[480px] sm:max-w-[90vw] sm:rounded-2xl rounded-t-2xl shadow-xl border border-stone-200/60 flex flex-col h-[85dvh] sm:h-[80vh] animate-slide-up"
+        className="bg-white w-full sm:w-[480px] sm:max-w-[90vw] sm:rounded-2xl rounded-t-2xl shadow-xl border border-stone-200/60 flex flex-col max-h-full sm:h-[80vh] animate-slide-up"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -261,6 +261,10 @@ export function ContactModal({
               value={reply}
               onChange={handleInput}
               onKeyDown={handleKeyDown}
+              onFocus={() => {
+                // iOS: ensure reply input is visible above keyboard
+                setTimeout(() => inputRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" }), 300);
+              }}
               placeholder="Reply..."
               dir="auto"
               rows={1}
