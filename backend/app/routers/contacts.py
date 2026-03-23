@@ -28,8 +28,12 @@ async def blocked():
 @router.get("/{jid}/messages")
 async def messages(jid: str, limit: int = 50):
     async with get_db() as db:
+        # Get the LAST N messages (subquery gets newest, outer query re-orders ASC for display)
         cursor = await db.execute(
-            "SELECT * FROM messages WHERE chat_id = ? ORDER BY timestamp ASC, seq ASC LIMIT ?",
+            """SELECT * FROM (
+                SELECT * FROM messages WHERE chat_id = ?
+                ORDER BY timestamp DESC, seq DESC LIMIT ?
+            ) ORDER BY timestamp ASC, seq ASC""",
             (jid, limit),
         )
         rows = await cursor.fetchall()
