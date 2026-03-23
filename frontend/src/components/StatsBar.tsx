@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { api, clearToken } from "../api/client";
 import type { Stats } from "../types";
 import { formatRelativeTime } from "../utils/time";
@@ -13,6 +13,23 @@ export function StatsBar({ onShowQR, onSynced }: Props) {
   const [syncing, setSyncing] = useState(false);
   const [showIntervalPicker, setShowIntervalPicker] = useState(false);
   const [syncInterval, setSyncInterval] = useState<number | null>(null);
+  const pickerRef = useRef<HTMLDivElement>(null);
+
+  // Close picker on outside click
+  useEffect(() => {
+    if (!showIntervalPicker) return;
+    const handler = (e: MouseEvent) => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
+        setShowIntervalPicker(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    document.addEventListener("touchstart", handler as EventListener);
+    return () => {
+      document.removeEventListener("mousedown", handler);
+      document.removeEventListener("touchstart", handler as EventListener);
+    };
+  }, [showIntervalPicker]);
 
   useEffect(() => {
     const load = async () => {
@@ -95,7 +112,7 @@ export function StatsBar({ onShowQR, onSynced }: Props) {
             </>
           )}
           <span className="text-stone-200">&middot;</span>
-          <div className="relative shrink-0">
+          <div ref={pickerRef} className="relative shrink-0">
             <button
               onClick={() => setShowIntervalPicker(!showIntervalPicker)}
               className="hover:text-stone-600 transition-colors cursor-pointer"
@@ -104,9 +121,7 @@ export function StatsBar({ onShowQR, onSynced }: Props) {
               {syncInterval && <span className="hidden sm:inline text-stone-300"> (every {syncInterval}m)</span>}
             </button>
             {showIntervalPicker && (
-              <>
-                <div className="fixed inset-0 z-30" onClick={() => setShowIntervalPicker(false)} />
-                <div className="absolute top-full mt-2 right-0 sm:left-0 bg-white rounded-xl shadow-lg border border-stone-200 py-2 px-3 z-40 animate-fade-in w-48">
+              <div className="absolute top-full mt-2 right-0 sm:left-0 bg-white rounded-xl shadow-lg border border-stone-200 py-2 px-3 z-40 animate-fade-in w-48">
                   <p className="text-[11px] text-stone-400 mb-2 font-medium">Sync every</p>
                   <div className="flex flex-wrap gap-1.5">
                     {[1, 5, 10, 15, 30, 60].map((m) => (
@@ -124,7 +139,6 @@ export function StatsBar({ onShowQR, onSynced }: Props) {
                     ))}
                   </div>
                 </div>
-              </>
             )}
           </div>
         </div>
