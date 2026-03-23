@@ -120,7 +120,7 @@ export function ContactModal({
       onClick={onClose}
     >
       <div
-        className="bg-white w-full sm:w-[480px] sm:max-w-[90vw] sm:rounded-2xl rounded-t-2xl shadow-xl border border-stone-200/60 flex flex-col h-[85dvh] sm:h-auto sm:max-h-[80vh] animate-slide-up"
+        className="bg-white w-full sm:w-[480px] sm:max-w-[90vw] sm:rounded-2xl rounded-t-2xl shadow-xl border border-stone-200/60 flex flex-col h-[85dvh] sm:h-[80vh] animate-slide-up"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

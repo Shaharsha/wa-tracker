@@ -29,7 +29,7 @@ async def blocked():
 async def messages(jid: str, limit: int = 50):
     async with get_db() as db:
         cursor = await db.execute(
-            "SELECT * FROM messages WHERE chat_id = ? ORDER BY timestamp ASC LIMIT ?",
+            "SELECT * FROM messages WHERE chat_id = ? ORDER BY timestamp ASC, seq ASC LIMIT ?",
             (jid, limit),
         )
         rows = await cursor.fetchall()

@@ -135,7 +135,7 @@ async def _do_sync():
 
                 # Insert messages + download media for new ones
                 _MEDIA_TYPES = {"image", "video", "audio", "ptt", "sticker", "document"}
-                for msg in messages:
+                for seq_idx, msg in enumerate(messages):
                     msg_id = msg.get("id")
                     if not msg_id:
                         continue
@@ -185,10 +185,10 @@ async def _do_sync():
                     else:
                         await db.execute(
                             """INSERT OR IGNORE INTO messages
-                               (id, chat_id, from_me, body, timestamp, message_type, media_url)
-                               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                               (id, chat_id, from_me, body, timestamp, seq, message_type, media_url)
+                               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
                             (msg_id, jid, 1 if msg.get("fromMe") else 0,
-                             msg.get("body", ""), msg.get("timestamp", 0), msg_type, media_url),
+                             msg.get("body", ""), msg.get("timestamp", 0), seq_idx, msg_type, media_url),
                         )
 
                     # If this message has a reaction from us, save it as a "reply"

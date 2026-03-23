@@ -23,11 +23,12 @@ _SCHEMA_STATEMENTS = [
         from_me INTEGER NOT NULL,
         body TEXT,
         timestamp INTEGER NOT NULL,
+        seq INTEGER DEFAULT 0,
         message_type TEXT,
         media_url TEXT,
         FOREIGN KEY (chat_id) REFERENCES contacts(jid)
     )""",
-    "CREATE INDEX IF NOT EXISTS idx_messages_chat_ts ON messages(chat_id, timestamp DESC)",
+    "CREATE INDEX IF NOT EXISTS idx_messages_chat_ts ON messages(chat_id, timestamp DESC, seq DESC)",
     "CREATE INDEX IF NOT EXISTS idx_messages_from_me ON messages(chat_id, from_me, timestamp DESC)",
     """CREATE TABLE IF NOT EXISTS sync_state (
         key TEXT PRIMARY KEY,
@@ -40,6 +41,7 @@ _MIGRATIONS = [
     "ALTER TABLE contacts ADD COLUMN dismissed_until INTEGER DEFAULT 0",
     "ALTER TABLE contacts ADD COLUMN is_blocked INTEGER DEFAULT 0",
     "ALTER TABLE messages ADD COLUMN media_url TEXT",
+    "ALTER TABLE messages ADD COLUMN seq INTEGER DEFAULT 0",
 ]
 
 # These depend on columns added by migrations, so run last
@@ -51,7 +53,7 @@ _POST_MIGRATION = [
         WHERE m.id = (
             SELECT id FROM messages
             WHERE chat_id = m.chat_id
-            ORDER BY timestamp DESC LIMIT 1
+            ORDER BY timestamp DESC, seq DESC LIMIT 1
         )""",
 ]
 
