@@ -12,7 +12,7 @@ from pydantic import BaseModel
 
 from app.config import settings
 from app.database import init_db
-from app.poller import start_scheduler, stop_scheduler
+from app.poller import start_scheduler, stop_scheduler, reschedule, get_interval_minutes
 from app.waha_client import waha_client
 from app.routers import contacts, actions, stats
 from app.services.sync_service import poll_and_update
@@ -138,6 +138,23 @@ app.include_router(stats.router)
 async def manual_sync():
     await poll_and_update()
     return {"status": "sync_complete"}
+
+
+@app.get("/api/settings")
+async def get_settings():
+    return {"sync_interval_minutes": get_interval_minutes()}
+
+
+class UpdateSettingsRequest(BaseModel):
+    sync_interval_minutes: int
+
+
+@app.post("/api/settings")
+async def update_settings(req: UpdateSettingsRequest):
+    if not 1 <= req.sync_interval_minutes <= 60:
+        raise HTTPException(status_code=400, detail="Interval must be between 1 and 60 minutes")
+    reschedule(req.sync_interval_minutes)
+    return {"sync_interval_minutes": req.sync_interval_minutes}
 
 
 @app.get("/api/waha/session")

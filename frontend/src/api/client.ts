@@ -112,4 +112,13 @@ export const api = {
 
   stopWAHASession: () =>
     apiFetch("/waha/stop", { method: "POST" }),
+
+  getSettings: () =>
+    apiFetch<{ sync_interval_minutes: number }>("/settings"),
+
+  updateSettings: (syncIntervalMinutes: number) =>
+    apiFetch<{ sync_interval_minutes: number }>("/settings", {
+      method: "POST",
+      body: JSON.stringify({ sync_interval_minutes: syncIntervalMinutes }),
+    }),
 };

@@ -11,6 +11,8 @@ interface Props {
 export function StatsBar({ onShowQR, onSynced }: Props) {
   const [stats, setStats] = useState<Stats | null>(null);
   const [syncing, setSyncing] = useState(false);
+  const [showIntervalPicker, setShowIntervalPicker] = useState(false);
+  const [syncInterval, setSyncInterval] = useState<number | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -21,6 +23,7 @@ export function StatsBar({ onShowQR, onSynced }: Props) {
       }
     };
     load();
+    api.getSettings().then((s) => setSyncInterval(s.sync_interval_minutes)).catch(() => {});
     const interval = setInterval(load, 60_000);
     return () => clearInterval(interval);
   }, []);
@@ -34,6 +37,14 @@ export function StatsBar({ onShowQR, onSynced }: Props) {
     } finally {
       setSyncing(false);
     }
+  };
+
+  const handleIntervalChange = async (minutes: number) => {
+    try {
+      const result = await api.updateSettings(minutes);
+      setSyncInterval(result.sync_interval_minutes);
+      setShowIntervalPicker(false);
+    } catch { /* ignore */ }
   };
 
   if (!stats) return null;
@@ -84,7 +95,38 @@ export function StatsBar({ onShowQR, onSynced }: Props) {
             </>
           )}
           <span className="text-stone-200">&middot;</span>
-          <span className="shrink-0 truncate">synced <span className="font-medium text-stone-600">{syncAgo}</span></span>
+          <div className="relative shrink-0">
+            <button
+              onClick={() => setShowIntervalPicker(!showIntervalPicker)}
+              className="hover:text-stone-600 transition-colors cursor-pointer"
+            >
+              synced <span className="font-medium text-stone-600">{syncAgo}</span>
+              {syncInterval && <span className="hidden sm:inline text-stone-300"> (every {syncInterval}m)</span>}
+            </button>
+            {showIntervalPicker && (
+              <>
+                <div className="fixed inset-0 z-20" onClick={() => setShowIntervalPicker(false)} />
+                <div className="absolute top-full mt-2 right-0 sm:left-0 bg-white rounded-xl shadow-lg border border-stone-200 py-2 px-3 z-30 animate-fade-in w-48">
+                  <p className="text-[11px] text-stone-400 mb-2 font-medium">Sync every</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[1, 5, 10, 15, 30, 60].map((m) => (
+                      <button
+                        key={m}
+                        onClick={() => handleIntervalChange(m)}
+                        className={`text-xs px-2.5 py-1.5 rounded-lg border transition-all cursor-pointer ${
+                          syncInterval === m
+                            ? "bg-stone-800 text-white border-stone-800"
+                            : "bg-stone-50 text-stone-600 border-stone-200 hover:bg-stone-100"
+                        }`}
+                      >
+                        {m === 60 ? "1h" : `${m}m`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Actions */}

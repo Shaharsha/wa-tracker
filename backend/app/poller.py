@@ -19,5 +19,21 @@ def start_scheduler():
     scheduler.start()
 
 
+def reschedule(minutes: int):
+    """Change the sync interval. Takes effect immediately."""
+    scheduler.reschedule_job(
+        "waha_poller",
+        trigger="interval",
+        minutes=minutes,
+    )
+
+
+def get_interval_minutes() -> int:
+    job = scheduler.get_job("waha_poller")
+    if job and job.trigger:
+        return int(job.trigger.interval.total_seconds() / 60)
+    return settings.poll_interval_minutes
+
+
 def stop_scheduler():
     scheduler.shutdown(wait=False)
