@@ -105,8 +105,8 @@ export function StatsBar({ onShowQR, onSynced }: Props) {
             </button>
             {showIntervalPicker && (
               <>
-                <div className="fixed inset-0 z-20" onClick={() => setShowIntervalPicker(false)} />
-                <div className="absolute top-full mt-2 right-0 sm:left-0 bg-white rounded-xl shadow-lg border border-stone-200 py-2 px-3 z-30 animate-fade-in w-48">
+                <div className="fixed inset-0 z-30" onClick={() => setShowIntervalPicker(false)} />
+                <div className="absolute top-full mt-2 right-0 sm:left-0 bg-white rounded-xl shadow-lg border border-stone-200 py-2 px-3 z-40 animate-fade-in w-48">
                   <p className="text-[11px] text-stone-400 mb-2 font-medium">Sync every</p>
                   <div className="flex flex-wrap gap-1.5">
                     {[1, 5, 10, 15, 30, 60].map((m) => (
