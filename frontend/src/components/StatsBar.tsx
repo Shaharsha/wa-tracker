@@ -86,7 +86,7 @@ export function StatsBar({ onShowQR, onSynced }: Props) {
         {/* Stats inline */}
         <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-stone-400 flex-1 min-w-0">
           <span className="shrink-0">
-            <span className="font-semibold text-coral-500 tabular-nums">{stats.total_unanswered}</span> waiting
+            <span className={`font-semibold tabular-nums ${stats.total_unanswered > 0 ? "text-coral-500" : "text-sage-500"}`}>{stats.total_unanswered}</span> waiting
           </span>
           {longestLabel && (
             <>
