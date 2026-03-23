@@ -36,9 +36,31 @@ export function ContactModal({
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
   const displayName = contact.name || `+${contact.phone}`;
   const initial = (contact.name || contact.phone)[0]?.toUpperCase() || "?";
   const hue = displayName.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
+
+  // iOS keyboard: resize overlay to match visual viewport
+  useEffect(() => {
+    const vv = window.visualViewport;
+    const overlay = overlayRef.current;
+    if (!vv || !overlay) return;
+
+    const update = () => {
+      overlay.style.height = `${vv.height}px`;
+      overlay.style.top = `${vv.offsetTop}px`;
+    };
+
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    update();
+
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
+  }, []);
 
   // Scroll to bottom when messages load
   useEffect(() => {
@@ -116,11 +138,12 @@ export function ContactModal({
 
   return (
     <div
-      className="fixed inset-0 bg-stone-900/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center animate-fade-in overscroll-contain"
+      ref={overlayRef}
+      className="fixed inset-x-0 top-0 h-full bg-stone-900/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center animate-fade-in overscroll-contain"
       onClick={onClose}
     >
       <div
-        className="bg-white w-full sm:w-[480px] sm:max-w-[90vw] sm:rounded-2xl rounded-t-2xl shadow-xl border border-stone-200/60 flex flex-col max-h-full sm:h-[80vh] animate-slide-up"
+        className="bg-white w-full sm:w-[480px] sm:max-w-[90vw] sm:rounded-2xl rounded-t-2xl shadow-xl border border-stone-200/60 flex flex-col max-h-full sm:max-h-[80vh] animate-slide-up"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -261,10 +284,6 @@ export function ContactModal({
               value={reply}
               onChange={handleInput}
               onKeyDown={handleKeyDown}
-              onFocus={() => {
-                // iOS: ensure reply input is visible above keyboard
-                setTimeout(() => inputRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" }), 300);
-              }}
               placeholder="Reply..."
               dir="auto"
               rows={1}
